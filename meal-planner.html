@@ -148,6 +148,32 @@ body { font-family:'Inter','Noto Sans JP',-apple-system,BlinkMacSystemFont,sans-
 @keyframes fadeInUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
 .animate-in { animation:fadeInUp .35s cubic-bezier(.4,0,.2,1) both; }
 
+/* ── Saved plans ── */
+.save-bar { display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top:12px; }
+.btn-save { padding:8px 20px; border:2px solid var(--primary); border-radius:50px; background:transparent; color:var(--primary); font-size:.8rem; font-weight:700; cursor:pointer; transition:all .2s; font-family:inherit; white-space:nowrap; }
+.btn-save:hover { background:var(--primary); color:#fff; }
+.btn-save:active { transform:scale(.97); }
+.btn-save.saved { background:var(--success); border-color:var(--success); color:#fff; pointer-events:none; }
+
+.saved-section { margin-top:20px; }
+.saved-header { display:flex; align-items:center; gap:10px; margin-bottom:10px; cursor:pointer; user-select:none; }
+.saved-header h3 { font-size:.9rem; font-weight:700; }
+.saved-header .count { font-size:.65rem; background:var(--primary-light); color:var(--primary); padding:2px 8px; border-radius:50px; font-weight:700; }
+.saved-header .arrow { font-size:.6rem; color:var(--text-muted); transition:transform .2s; margin-left:auto; }
+.saved-header.open .arrow { transform:rotate(180deg); }
+.saved-list { display:none; }
+.saved-list.show { display:block; }
+.saved-item { display:flex; align-items:center; gap:10px; padding:12px 16px; background:var(--card); border:1px solid var(--border-light); border-radius:var(--radius-sm); margin-bottom:8px; transition:all .15s; }
+.saved-item:hover { box-shadow:var(--shadow-md); }
+.saved-item-info { flex:1; min-width:0; cursor:pointer; }
+.saved-item-name { font-size:.85rem; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.saved-item-meta { font-size:.7rem; color:var(--text-muted); margin-top:2px; }
+.saved-item .btn-load { padding:5px 14px; border:1.5px solid var(--primary); border-radius:50px; background:transparent; color:var(--primary); font-size:.72rem; font-weight:700; cursor:pointer; font-family:inherit; transition:all .15s; white-space:nowrap; }
+.saved-item .btn-load:hover { background:var(--primary); color:#fff; }
+.saved-item .btn-delete { width:28px; height:28px; border:none; border-radius:50%; background:transparent; color:var(--text-muted); cursor:pointer; font-size:.9rem; display:flex; align-items:center; justify-content:center; transition:all .15s; flex-shrink:0; font-family:inherit; }
+.saved-item .btn-delete:hover { background:var(--danger-light); color:var(--danger); }
+.no-saved { font-size:.8rem; color:var(--text-muted); text-align:center; padding:16px; }
+
 @media(max-width:600px){
   .hero{padding:36px 16px 48px} .hero h1{font-size:1.5rem}
   .settings-card{padding:20px} .settings-row{flex-direction:column;gap:14px}
@@ -156,6 +182,7 @@ body { font-family:'Inter','Noto Sans JP',-apple-system,BlinkMacSystemFont,sans-
   .ing-table td:nth-child(3){display:none}
   .modal{max-height:90vh;border-radius:12px}
   .modal-ing-list{grid-template-columns:1fr}
+  .saved-item-name{max-width:140px}
 }
 </style>
 </head>
@@ -214,6 +241,7 @@ body { font-family:'Inter','Noto Sans JP',-apple-system,BlinkMacSystemFont,sans-
 <div class="main">
   <div class="summary-bar" id="summaryBar"></div>
   <div id="weekPlan"></div>
+  <div id="savedPlans"></div>
   <div id="ingredients"></div>
 </div>
 
@@ -521,7 +549,7 @@ function generate() {
   currentPlan=DAYS.map((day,idx)=>({day,color:DAY_COLORS[idx],meals:[
     {type:'breakfast',label:'朝食',...b[idx]},{type:'lunch',label:'昼食',...l[idx]},{type:'dinner',label:'夕食',...d[idx]}
   ]}));
-  renderSummary(); renderPlan(); renderIngredients();
+  renderSummary(); renderPlan(); renderIngredients(); renderSavedPlans();
 }
 
 function renderSummary() {
@@ -543,7 +571,8 @@ function renderPlan() {
   const c=document.getElementById('weekPlan');
   const calLabel=getCalMode()==='diet'?'ダイエット':'通常';
   const bl={saving:'節約',normal:'通常',rich:'リッチ'};
-  let html=`<div class="section-header animate-in"><div class="icon" style="background:var(--primary-light);color:var(--primary);">&#128197;</div><h2>一週間の献立</h2><span class="badge">${calLabel} / ${bl[getBudgetMode()]} / ${peopleCount}人前</span></div>`;
+  let html=`<div class="section-header animate-in"><div class="icon" style="background:var(--primary-light);color:var(--primary);">&#128197;</div><h2>一週間の献立</h2><span class="badge">${calLabel} / ${bl[getBudgetMode()]} / ${peopleCount}人前</span></div>
+  <div class="save-bar animate-in"><button class="btn-save" id="btnSavePlan" onclick="savePlan()">&#9733; この献立を保存</button></div>`;
   currentPlan.forEach((d,idx)=>{
     const tc=d.meals.reduce((s,m)=>s+m.cal,0);
     const cl={jp:'和',western:'洋',cn:'中'};
@@ -754,10 +783,99 @@ function getMemo(name, qty, unit) {
   return '';
 }
 
+// ── Saved Plans ──
+const STORAGE_KEY = 'mealPlannerSaved';
+
+function getSavedPlans() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
+  catch { return []; }
+}
+
+function savePlan() {
+  if (!currentPlan) return;
+  const saved = getSavedPlans();
+  const calLabel = getCalMode() === 'diet' ? 'ダイエット' : '通常';
+  const bl = { saving:'節約', normal:'通常', rich:'リッチ' };
+  const entry = {
+    id: Date.now(),
+    date: new Date().toLocaleDateString('ja-JP'),
+    label: calLabel + ' / ' + bl[getBudgetMode()] + ' / ' + peopleCount + '人前',
+    plan: currentPlan,
+    people: peopleCount,
+    calMode: getCalMode(),
+    budgetMode: getBudgetMode()
+  };
+  saved.unshift(entry);
+  if (saved.length > 20) saved.length = 20;
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(saved));
+  const btn = document.getElementById('btnSavePlan');
+  if (btn) { btn.classList.add('saved'); btn.innerHTML = '&#10003; 保存しました'; }
+  renderSavedPlans();
+}
+
+function loadPlan(id) {
+  const saved = getSavedPlans();
+  const entry = saved.find(s => s.id === id);
+  if (!entry) return;
+  currentPlan = entry.plan;
+  peopleCount = entry.people || 2;
+  document.getElementById('peopleDisplay').innerHTML = peopleCount + '<span> 人前</span>';
+  // restore toggles
+  document.querySelectorAll('#calToggle .toggle-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.val === entry.calMode);
+  });
+  document.querySelectorAll('#budgetToggle .toggle-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.val === entry.budgetMode);
+  });
+  renderSummary(); renderPlan(); renderIngredients(); renderSavedPlans();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function deletePlan(id) {
+  const saved = getSavedPlans().filter(s => s.id !== id);
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(saved));
+  renderSavedPlans();
+}
+
+function toggleSavedList() {
+  const h = document.querySelector('.saved-header');
+  const l = document.querySelector('.saved-list');
+  if (h && l) { h.classList.toggle('open'); l.classList.toggle('show'); }
+}
+
+function renderSavedPlans() {
+  const container = document.getElementById('savedPlans');
+  const saved = getSavedPlans();
+  if (!saved.length) { container.innerHTML = ''; return; }
+  const meals0 = s => s.plan.slice(0,2).map(d => d.meals.map(m=>m.name).join('、')).join(' / ');
+  let html = `
+    <div class="saved-section animate-in">
+      <div class="saved-header open" onclick="toggleSavedList()">
+        <h3>&#9733; 保存済み献立</h3>
+        <span class="count">${saved.length}</span>
+        <span class="arrow">&#9660;</span>
+      </div>
+      <div class="saved-list show">`;
+  saved.forEach(s => {
+    html += `
+        <div class="saved-item">
+          <div class="saved-item-info" onclick="loadPlan(${s.id})">
+            <div class="saved-item-name">${s.date} - ${s.label}</div>
+            <div class="saved-item-meta">${meals0(s)}…</div>
+          </div>
+          <button class="btn-load" onclick="loadPlan(${s.id})">読込</button>
+          <button class="btn-delete" onclick="deletePlan(${s.id})" title="削除">&times;</button>
+        </div>`;
+  });
+  html += '</div></div>';
+  container.innerHTML = html;
+}
+
 // Init
 document.getElementById('generateBtn').addEventListener('click', generate);
 renderAllergyChips();
 generate();
+renderSavedPlans();
 </script>
 </body>
 </html>
