@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Meal Planner - 一週間の献立プランナー</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700;800&display=swap');
+:root {
+  --bg: #f6f7fb; --card: #fff; --primary: #4f46e5; --primary-light: #e0e7ff;
+  --accent: #f59e0b; --success: #10b981; --success-light: #d1fae5;
+  --danger: #ef4444; --danger-light: #fee2e2;
+  --text: #1e293b; --text-secondary: #64748b; --text-muted: #94a3b8;
+  --border: #e2e8f0; --border-light: #f1f5f9;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.06);
+  --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -2px rgba(0,0,0,0.05);
+  --shadow-xl: 0 20px 50px -12px rgba(0,0,0,0.1);
+  --radius: 16px; --radius-sm: 10px; --radius-xs: 6px;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Inter','Noto Sans JP',-apple-system,BlinkMacSystemFont,sans-serif; background:var(--bg); color:var(--text); min-height:100vh; -webkit-font-smoothing:antialiased; }
+
+.hero { background:linear-gradient(135deg,#4f46e5 0%,#7c3aed 50%,#a855f7 100%); padding:48px 24px 56px; text-align:center; position:relative; overflow:hidden; }
+.hero::before { content:''; position:absolute; inset:0; background:radial-gradient(circle at 20% 80%,rgba(255,255,255,.15) 0%,transparent 50%),radial-gradient(circle at 80% 20%,rgba(255,255,255,.1) 0%,transparent 50%); }
+.hero-content { position:relative; z-index:1; }
+.hero h1 { font-size:2rem; font-weight:800; color:#fff; letter-spacing:-.02em; margin-bottom:6px; }
+.hero p { font-size:.9rem; color:rgba(255,255,255,.8); }
+
+.settings-panel { max-width:880px; margin:-32px auto 0; padding:0 16px; position:relative; z-index:2; }
+.settings-card { background:var(--card); border-radius:var(--radius); padding:28px; box-shadow:var(--shadow-xl); border:1px solid var(--border-light); }
+.settings-row { display:flex; gap:16px; flex-wrap:wrap; margin-bottom:20px; }
+.setting-group { flex:1; min-width:160px; }
+.setting-label { font-size:.7rem; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--text-muted); margin-bottom:8px; }
+.toggle-group { display:flex; border-radius:var(--radius-sm); overflow:hidden; border:1.5px solid var(--border); background:var(--bg); }
+.toggle-btn { flex:1; padding:10px 14px; border:none; cursor:pointer; font-size:.82rem; font-weight:600; background:transparent; color:var(--text-secondary); transition:all .25s cubic-bezier(.4,0,.2,1); white-space:nowrap; font-family:inherit; }
+.toggle-btn.active { background:var(--primary); color:#fff; box-shadow:0 2px 8px rgba(79,70,229,.3); }
+.toggle-btn:hover:not(.active) { background:var(--primary-light); color:var(--primary); }
+
+/* People selector */
+.people-selector { display:flex; align-items:center; gap:0; border-radius:var(--radius-sm); border:1.5px solid var(--border); background:var(--bg); overflow:hidden; }
+.people-btn { width:42px; height:42px; border:none; cursor:pointer; font-size:1.1rem; font-weight:700; background:transparent; color:var(--primary); transition:all .15s; font-family:inherit; display:flex; align-items:center; justify-content:center; }
+.people-btn:hover { background:var(--primary-light); }
+.people-btn:active { background:var(--primary); color:#fff; }
+.people-display { flex:1; text-align:center; font-size:.95rem; font-weight:700; color:var(--text); min-width:60px; user-select:none; }
+.people-display span { font-size:.7rem; font-weight:500; color:var(--text-muted); }
+
+.allergy-section { margin-bottom:20px; }
+.allergy-grid { display:flex; flex-wrap:wrap; gap:8px; }
+.allergy-chip { display:flex; align-items:center; gap:6px; padding:7px 14px; border-radius:50px; border:1.5px solid var(--border); background:var(--card); cursor:pointer; font-size:.8rem; font-weight:500; color:var(--text-secondary); transition:all .2s; user-select:none; font-family:inherit; }
+.allergy-chip:hover { border-color:var(--danger); color:var(--danger); background:var(--danger-light); }
+.allergy-chip.selected { border-color:var(--danger); background:var(--danger); color:#fff; }
+.allergy-chip .icon { font-size:1rem; line-height:1; }
+.allergy-chip .x-mark { display:none; font-size:.7rem; font-weight:800; margin-left:2px; }
+.allergy-chip.selected .x-mark { display:inline; }
+.allergy-warning { display:none; margin-top:10px; padding:10px 14px; border-radius:var(--radius-xs); background:var(--danger-light); border:1px solid #fca5a5; font-size:.78rem; color:#b91c1c; font-weight:500; }
+.allergy-warning.show { display:flex; align-items:center; gap:8px; }
+
+.generate-row { display:flex; justify-content:center; }
+.btn-generate { padding:14px 48px; border:none; border-radius:50px; background:linear-gradient(135deg,var(--primary),#7c3aed); color:#fff; font-size:1rem; font-weight:700; cursor:pointer; box-shadow:0 4px 15px rgba(79,70,229,.35); transition:all .25s cubic-bezier(.4,0,.2,1); letter-spacing:.02em; font-family:inherit; }
+.btn-generate:hover { transform:translateY(-2px); box-shadow:0 8px 25px rgba(79,70,229,.45); }
+.btn-generate:active { transform:translateY(0); }
+
+.main { max-width:880px; margin:0 auto; padding:0 16px 60px; }
+
+.summary-bar { display:none; grid-template-columns:repeat(auto-fit,minmax(100px,1fr)); gap:12px; margin-top:28px; }
+.summary-bar.show { display:grid; }
+.stat-card { background:var(--card); border-radius:var(--radius-sm); padding:18px 14px; text-align:center; box-shadow:var(--shadow-sm); border:1px solid var(--border-light); transition:transform .2s; }
+.stat-card:hover { transform:translateY(-2px); }
+.stat-num { font-size:1.6rem; font-weight:800; background:linear-gradient(135deg,var(--primary),#7c3aed); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+.stat-label { font-size:.68rem; color:var(--text-muted); font-weight:600; margin-top:2px; }
+
+.section-header { display:flex; align-items:center; gap:10px; margin:28px 0 14px; }
+.section-header .icon { width:32px; height:32px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:1rem; }
+.section-header h2 { font-size:1.1rem; font-weight:700; letter-spacing:-.01em; }
+.section-header .badge { margin-left:auto; font-size:.7rem; font-weight:600; padding:4px 12px; border-radius:50px; background:var(--primary-light); color:var(--primary); }
+
+.day-card { background:var(--card); border-radius:var(--radius); margin-bottom:10px; box-shadow:var(--shadow-sm); border:1px solid var(--border-light); overflow:hidden; transition:all .25s; }
+.day-card:hover { box-shadow:var(--shadow-md); }
+.day-header { padding:14px 20px; display:flex; align-items:center; gap:12px; cursor:pointer; user-select:none; transition:background .15s; }
+.day-header:hover { background:var(--bg); }
+.day-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+.day-name { font-weight:700; font-size:.92rem; }
+.day-cal-badge { margin-left:auto; font-size:.72rem; font-weight:600; color:var(--text-muted); padding:3px 10px; background:var(--bg); border-radius:50px; }
+.day-arrow { font-size:.65rem; color:var(--text-muted); transition:transform .3s cubic-bezier(.4,0,.2,1); }
+.day-header.open .day-arrow { transform:rotate(180deg); }
+.day-body { padding:0 20px 16px; }
+.day-body.collapsed { display:none; }
+.meal-row { display:flex; align-items:center; gap:10px; padding:10px 0; border-bottom:1px solid var(--border-light); }
+.meal-row:last-child { border-bottom:none; }
+.meal-badge { font-size:.65rem; font-weight:700; color:#fff; padding:3px 10px; border-radius:50px; flex-shrink:0; letter-spacing:.04em; }
+.meal-badge.breakfast { background:linear-gradient(135deg,#f59e0b,#f97316); }
+.meal-badge.lunch { background:linear-gradient(135deg,#3b82f6,#6366f1); }
+.meal-badge.dinner { background:linear-gradient(135deg,#ec4899,#ef4444); }
+.cuisine-pill { font-size:.6rem; font-weight:700; padding:2px 8px; border-radius:50px; flex-shrink:0; }
+.cuisine-pill.jp { background:#fef2f2; color:#dc2626; }
+.cuisine-pill.western { background:#eff6ff; color:#2563eb; }
+.cuisine-pill.cn { background:#fff7ed; color:#ea580c; }
+.meal-name { font-weight:600; font-size:.85rem; flex:1; min-width:0; }
+.meal-cal { font-size:.72rem; color:var(--text-muted); font-weight:500; white-space:nowrap; flex-shrink:0; }
+.day-total { text-align:right; font-size:.75rem; font-weight:700; color:var(--primary); padding-top:6px; }
+
+/* ── Shopping list table ── */
+.ing-card { background:var(--card); border-radius:var(--radius); padding:24px; box-shadow:var(--shadow-sm); border:1px solid var(--border-light); }
+.ing-summary { font-size:.78rem; color:var(--text-muted); margin-bottom:16px; font-weight:500; }
+.ing-cat-title { font-size:.78rem; font-weight:700; color:var(--text-secondary); margin:18px 0 8px; padding-bottom:6px; border-bottom:2px solid var(--border-light); display:flex; align-items:center; gap:6px; }
+.ing-cat-title:first-of-type { margin-top:0; }
+.ing-cat-title .cnt { font-size:.65rem; background:var(--primary-light); color:var(--primary); padding:1px 7px; border-radius:50px; font-weight:700; }
+
+.ing-table { width:100%; border-collapse:collapse; margin-bottom:4px; }
+.ing-table tr { transition:all .15s; cursor:pointer; user-select:none; }
+.ing-table tr:hover { background:var(--primary-light); }
+.ing-table tr.checked td { color:#94a3b8; text-decoration:line-through; }
+.ing-table tr.checked { background:var(--success-light); }
+.ing-table td { padding:7px 8px; font-size:.82rem; border-bottom:1px solid var(--border-light); }
+.ing-table td:first-child { font-weight:600; width:40%; }
+.ing-table td:nth-child(2) { text-align:right; font-weight:700; color:var(--primary); white-space:nowrap; width:30%; }
+.ing-table td:nth-child(3) { color:var(--text-muted); font-size:.75rem; width:30%; }
+.ing-table .check-icon { display:inline-block; width:18px; height:18px; border:2px solid var(--border); border-radius:4px; vertical-align:middle; margin-right:8px; position:relative; flex-shrink:0; transition:all .15s; }
+.ing-table tr.checked .check-icon { background:var(--success); border-color:var(--success); }
+.ing-table tr.checked .check-icon::after { content:''; position:absolute; left:4px; top:1px; width:5px; height:9px; border:solid #fff; border-width:0 2px 2px 0; transform:rotate(45deg); }
+.td-name { display:flex; align-items:center; }
+
+@keyframes fadeInUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+.animate-in { animation:fadeInUp .35s cubic-bezier(.4,0,.2,1) both; }
+
+@media(max-width:600px){
+  .hero{padding:36px 16px 48px} .hero h1{font-size:1.5rem}
+  .settings-card{padding:20px} .settings-row{flex-direction:column;gap:14px}
+  .meal-name{font-size:.78rem} .btn-generate{width:100%}
+  .summary-bar{grid-template-columns:repeat(2,1fr)}
+  .ing-table td:nth-child(3){display:none}
+}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-content">
+    <h1>Meal Planner</h1>
+    <p>一週間の献立を和洋中バランスよく、あなたに合わせて提案します</p>
+  </div>
+</div>
+
+<div class="settings-panel">
+  <div class="settings-card">
+    <div class="settings-row">
+      <div class="setting-group">
+        <div class="setting-label">カロリー設定</div>
+        <div class="toggle-group" id="calToggle">
+          <button class="toggle-btn active" data-val="diet">ダイエット</button>
+          <button class="toggle-btn" data-val="normal">通常</button>
+        </div>
+      </div>
+      <div class="setting-group">
+        <div class="setting-label">予算</div>
+        <div class="toggle-group" id="budgetToggle">
+          <button class="toggle-btn active" data-val="saving">節約</button>
+          <button class="toggle-btn" data-val="normal">通常</button>
+          <button class="toggle-btn" data-val="rich">リッチ</button>
+        </div>
+      </div>
+      <div class="setting-group">
+        <div class="setting-label">人数</div>
+        <div class="people-selector">
+          <button class="people-btn" onclick="changePeople(-1)">&#8722;</button>
+          <div class="people-display" id="peopleDisplay">2<span> 人前</span></div>
+          <button class="people-btn" onclick="changePeople(1)">&#43;</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="allergy-section">
+      <div class="setting-label">アレルギー除外（該当するものを選択）</div>
+      <div class="allergy-grid" id="allergyGrid"></div>
+      <div class="allergy-warning" id="allergyWarning">
+        <span>&#9888;</span>
+        <span id="allergyWarningText"></span>
+      </div>
+    </div>
+
+    <div class="generate-row">
+      <button class="btn-generate" id="generateBtn">献立を作成する</button>
+    </div>
+  </div>
+</div>
+
+<div class="main">
+  <div class="summary-bar" id="summaryBar"></div>
+  <div id="weekPlan"></div>
+  <div id="ingredients"></div>
+</div>
+
+<script>
+// ── Helper: ingredient shorthand ──
+// i('name', qty, 'unit') → { n, q, u }
+function i(n, q, u) { return { n, q, u }; }
+
+let peopleCount = 2;
+function changePeople(d) {
+  peopleCount = Math.max(1, Math.min(10, peopleCount + d));
+  document.getElementById('peopleDisplay').innerHTML = peopleCount + '<span> 人前</span>';
+  if (currentPlan) renderIngredients();
+}
+
+const ALLERGENS = [
+  { id:'egg',      label:'卵',     icon:'🥚', ingredients:['卵','うずらの卵'] },
+  { id:'milk',     label:'乳製品', icon:'🥛', ingredients:['牛乳','バター','チーズ','パルメザンチーズ','ギリシャヨーグルト','ホイップクリーム','生クリーム','モッツァレラチーズ'] },
+  { id:'wheat',    label:'小麦',   icon:'🌾', ingredients:['小麦粉','パン粉','食パン','全粒粉パン','イングリッシュマフィン','蒸しパン','揚げパン','中華麺','スパゲッティ','うどん','天ぷら粉','ホットケーキミックス','全粒粉クルトン','デミグラスソース'] },
+  { id:'shrimp',   label:'エビ',   icon:'🦐', ingredients:['エビ','干しエビ'] },
+  { id:'crab',     label:'カニ',   icon:'🦀', ingredients:['カニ'] },
+  { id:'soba',     label:'そば',   icon:'🍜', ingredients:['そば'] },
+  { id:'peanut',   label:'落花生', icon:'🥜', ingredients:['ピーナッツ','落花生'] },
+  { id:'soy',      label:'大豆',   icon:'🫘', ingredients:['豆腐','納豆','豆乳','味噌','醤油','豆板醤','甜麺醤','焼き豆腐','オイスターソース'] },
+  { id:'fish',     label:'魚類',   icon:'🐟', ingredients:['鮭','サーモン','タラ','さば','さば缶','ぶり','しらす','かつお節','めんつゆ'] },
+  { id:'squid',    label:'イカ',   icon:'🦑', ingredients:['イカ'] },
+  { id:'shellfish',label:'貝類',   icon:'🐚', ingredients:['あさり','ホタテ'] },
+  { id:'sesame',   label:'ごま',   icon:'🫙', ingredients:['ごま','ごま油','練りごま','ラー油'] },
+];
+
+const DAYS = ['月曜日','火曜日','水曜日','木曜日','金曜日','土曜日','日曜日'];
+const DAY_COLORS = ['#4f46e5','#7c3aed','#ec4899','#f59e0b','#10b981','#3b82f6','#ef4444'];
+
+// ── Meal database with quantities (per 1 person) ──
+const DB = {
+  diet: {
+    breakfast: [
+      { name:'オートミール粥（梅干し・しらす）', cuisine:'jp', cal:250, cost:'low',
+        ing:[i('オートミール',40,'g'),i('梅干し',1,'個'),i('しらす',15,'g'),i('のり',1,'枚')] },
+      { name:'豆腐とわかめの味噌汁＋玄米おにぎり', cuisine:'jp', cal:280, cost:'low',
+        ing:[i('豆腐',150,'g'),i('わかめ',3,'g'),i('味噌',18,'g'),i('玄米',150,'g')] },
+      { name:'アボカドトースト＋ゆで卵', cuisine:'western', cal:300, cost:'mid',
+        ing:[i('全粒粉パン',1,'枚'),i('アボカド',0.5,'個'),i('卵',1,'個'),i('レモン',0.25,'個')] },
+      { name:'ギリシャヨーグルト＋グラノーラ', cuisine:'western', cal:260, cost:'mid',
+        ing:[i('ギリシャヨーグルト',150,'g'),i('グラノーラ',40,'g'),i('ミックスベリー',30,'g')] },
+      { name:'中華風豆乳スープ＋蒸しパン', cuisine:'cn', cal:240, cost:'low',
+        ing:[i('豆乳',200,'ml'),i('鶏ガラスープの素',5,'g'),i('小松菜',50,'g'),i('蒸しパン',1,'個')] },
+      { name:'納豆ごはん＋具だくさん味噌汁', cuisine:'jp', cal:290, cost:'low',
+        ing:[i('納豆',1,'パック'),i('ごはん',150,'g'),i('大根',40,'g'),i('にんじん',30,'g'),i('味噌',18,'g')] },
+      { name:'スムージーボウル', cuisine:'western', cal:230, cost:'low',
+        ing:[i('バナナ',1,'本'),i('ほうれん草',30,'g'),i('豆乳',150,'ml'),i('グラノーラ',30,'g')] },
+      { name:'温泉卵のせ雑炊', cuisine:'jp', cal:260, cost:'low',
+        ing:[i('ごはん',150,'g'),i('卵',1,'個'),i('長ねぎ',20,'g'),i('鶏ガラスープの素',5,'g'),i('のり',1,'枚')] },
+      { name:'トマトとモッツァレラのブルスケッタ', cuisine:'western', cal:280, cost:'high',
+        ing:[i('全粒粉パン',1,'枚'),i('トマト',0.5,'個'),i('モッツァレラチーズ',50,'g'),i('オリーブオイル',8,'ml'),i('バジル',2,'枚')] },
+      { name:'中華風蒸し野菜プレート', cuisine:'cn', cal:220, cost:'low',
+        ing:[i('ブロッコリー',60,'g'),i('にんじん',40,'g'),i('もやし',50,'g'),i('ポン酢',15,'ml'),i('ごま油',5,'ml')] },
+    ],
+    lunch: [
+      { name:'鶏むね肉のサラダチキン丼', cuisine:'jp', cal:380, cost:'low',
+        ing:[i('鶏むね肉',120,'g'),i('レタス',40,'g'),i('トマト',0.5,'個'),i('ごはん',150,'g'),i('ポン酢',15,'ml')] },
+      { name:'ささみと野菜の中華春雨サラダ', cuisine:'cn', cal:320, cost:'low',
+        ing:[i('ささみ',80,'g'),i('春雨',30,'g'),i('きゅうり',0.5,'本'),i('にんじん',30,'g'),i('ごま油',5,'ml'),i('酢',10,'ml')] },
+      { name:'グリルチキンのシーザーサラダ', cuisine:'western', cal:350, cost:'mid',
+        ing:[i('鶏むね肉',120,'g'),i('ロメインレタス',60,'g'),i('パルメザンチーズ',15,'g'),i('全粒粉クルトン',20,'g')] },
+      { name:'蒸し鶏の冷やし中華風', cuisine:'cn', cal:360, cost:'low',
+        ing:[i('鶏むね肉',100,'g'),i('中華麺',1,'玉'),i('きゅうり',0.5,'本'),i('卵',1,'個'),i('トマト',0.5,'個'),i('ごま',5,'g')] },
+      { name:'サーモンポケ丼', cuisine:'western', cal:400, cost:'high',
+        ing:[i('サーモン',80,'g'),i('アボカド',0.5,'個'),i('玄米',150,'g'),i('醤油',10,'ml'),i('ごま',3,'g')] },
+      { name:'豚しゃぶサラダうどん', cuisine:'jp', cal:370, cost:'mid',
+        ing:[i('豚もも肉',80,'g'),i('うどん',1,'玉'),i('レタス',40,'g'),i('トマト',0.5,'個'),i('ポン酢',20,'ml')] },
+      { name:'エビと豆腐の中華あんかけ', cuisine:'cn', cal:340, cost:'mid',
+        ing:[i('エビ',80,'g'),i('豆腐',150,'g'),i('チンゲン菜',80,'g'),i('生姜',5,'g'),i('鶏ガラスープの素',5,'g')] },
+      { name:'鯖缶と大葉の混ぜごはん', cuisine:'jp', cal:350, cost:'low',
+        ing:[i('さば缶',0.5,'缶'),i('大葉',3,'枚'),i('ごはん',150,'g'),i('生姜',5,'g'),i('ごま',3,'g'),i('醤油',8,'ml')] },
+      { name:'チキンとキヌアのパワーサラダ', cuisine:'western', cal:380, cost:'high',
+        ing:[i('鶏むね肉',100,'g'),i('キヌア',40,'g'),i('ミニトマト',5,'個'),i('きゅうり',0.5,'本'),i('オリーブオイル',10,'ml'),i('レモン',0.25,'個')] },
+      { name:'もやしたっぷり塩焼きそば', cuisine:'cn', cal:330, cost:'low',
+        ing:[i('中華麺',1,'玉'),i('もやし',100,'g'),i('キャベツ',60,'g'),i('豚もも肉',60,'g'),i('塩',2,'g'),i('ごま油',5,'ml')] },
+    ],
+    dinner: [
+      { name:'鮭のホイル焼き＋きのこ添え', cuisine:'jp', cal:350, cost:'mid',
+        ing:[i('鮭',1,'切れ'),i('しめじ',50,'g'),i('えのき',50,'g'),i('玉ねぎ',0.25,'個'),i('バター',8,'g'),i('ポン酢',15,'ml')] },
+      { name:'鶏むね肉のトマト煮込み', cuisine:'western', cal:380, cost:'mid',
+        ing:[i('鶏むね肉',130,'g'),i('トマト缶',0.5,'缶'),i('玉ねぎ',0.5,'個'),i('ズッキーニ',0.5,'本'),i('にんにく',1,'片'),i('オリーブオイル',8,'ml')] },
+      { name:'麻婆豆腐（ヘルシー版）', cuisine:'cn', cal:330, cost:'low',
+        ing:[i('豆腐',200,'g'),i('鶏ひき肉',80,'g'),i('長ねぎ',0.5,'本'),i('豆板醤',5,'g'),i('にんにく',1,'片'),i('生姜',5,'g')] },
+      { name:'タラのアクアパッツァ', cuisine:'western', cal:300, cost:'high',
+        ing:[i('タラ',1,'切れ'),i('ミニトマト',6,'個'),i('あさり',80,'g'),i('オリーブ',5,'粒'),i('ケッパー',5,'g'),i('白ワイン',30,'ml')] },
+      { name:'肉豆腐', cuisine:'jp', cal:360, cost:'mid',
+        ing:[i('牛もも肉',100,'g'),i('豆腐',200,'g'),i('白菜',80,'g'),i('長ねぎ',0.5,'本'),i('しらたき',80,'g'),i('醤油',15,'ml'),i('みりん',15,'ml')] },
+      { name:'海鮮八宝菜', cuisine:'cn', cal:320, cost:'mid',
+        ing:[i('エビ',60,'g'),i('イカ',60,'g'),i('白菜',80,'g'),i('にんじん',30,'g'),i('きくらげ',5,'g'),i('うずらの卵',3,'個'),i('オイスターソース',12,'ml')] },
+      { name:'ぶりの照り焼き＋お浸し', cuisine:'jp', cal:370, cost:'mid',
+        ing:[i('ぶり',1,'切れ'),i('醤油',15,'ml'),i('みりん',15,'ml'),i('ほうれん草',80,'g'),i('かつお節',3,'g')] },
+      { name:'鶏ささみのレモンハーブグリル', cuisine:'western', cal:310, cost:'mid',
+        ing:[i('ささみ',120,'g'),i('レモン',0.5,'個'),i('ローズマリー',1,'枝'),i('ブロッコリー',80,'g'),i('オリーブオイル',8,'ml')] },
+      { name:'豆腐チャンプルー', cuisine:'jp', cal:320, cost:'low',
+        ing:[i('豆腐',200,'g'),i('もやし',100,'g'),i('にら',50,'g'),i('卵',1,'個'),i('ごま油',8,'ml'),i('かつお節',3,'g')] },
+      { name:'蒸し鶏の葱ソースがけ', cuisine:'cn', cal:300, cost:'low',
+        ing:[i('鶏むね肉',130,'g'),i('長ねぎ',1,'本'),i('生姜',10,'g'),i('ごま油',10,'ml'),i('醤油',10,'ml')] },
+    ]
+  },
+  normal: {
+    breakfast: [
+      { name:'焼き鮭定食', cuisine:'jp', cal:450, cost:'mid',
+        ing:[i('鮭',1,'切れ'),i('ごはん',200,'g'),i('味噌',18,'g'),i('豆腐',80,'g'),i('たくあん',20,'g')] },
+      { name:'フレンチトースト＋ベーコン', cuisine:'western', cal:480, cost:'mid',
+        ing:[i('食パン',2,'枚'),i('卵',1,'個'),i('牛乳',80,'ml'),i('バター',10,'g'),i('ベーコン',2,'枚'),i('メープルシロップ',15,'ml')] },
+      { name:'中華粥＋油条風揚げパン', cuisine:'cn', cal:420, cost:'low',
+        ing:[i('ごはん',150,'g'),i('鶏ガラスープの素',5,'g'),i('生姜',5,'g'),i('ザーサイ',15,'g'),i('パクチー',5,'g'),i('揚げパン',1,'本')] },
+      { name:'パンケーキ＋フルーツ', cuisine:'western', cal:500, cost:'mid',
+        ing:[i('ホットケーキミックス',80,'g'),i('卵',1,'個'),i('牛乳',60,'ml'),i('バナナ',1,'本'),i('ホイップクリーム',20,'g')] },
+      { name:'豚汁定食', cuisine:'jp', cal:470, cost:'low',
+        ing:[i('豚バラ肉',60,'g'),i('大根',50,'g'),i('にんじん',30,'g'),i('ごぼう',30,'g'),i('こんにゃく',40,'g'),i('味噌',18,'g'),i('ごはん',200,'g')] },
+      { name:'エッグベネディクト', cuisine:'western', cal:520, cost:'high',
+        ing:[i('イングリッシュマフィン',1,'個'),i('卵',2,'個'),i('ハム',2,'枚'),i('バター',15,'g'),i('レモン',0.25,'個')] },
+      { name:'肉まん＋豆乳', cuisine:'cn', cal:400, cost:'low',
+        ing:[i('肉まん',2,'個'),i('豆乳',200,'ml'),i('ザーサイ',10,'g')] },
+      { name:'だし巻き卵定食', cuisine:'jp', cal:430, cost:'low',
+        ing:[i('卵',3,'個'),i('ごはん',200,'g'),i('味噌',18,'g'),i('わかめ',3,'g'),i('大根',40,'g')] },
+      { name:'クロックムッシュ', cuisine:'western', cal:490, cost:'mid',
+        ing:[i('食パン',2,'枚'),i('ハム',2,'枚'),i('チーズ',30,'g'),i('牛乳',30,'ml'),i('バター',10,'g')] },
+      { name:'台湾風豆乳スープ（鹹豆漿）', cuisine:'cn', cal:380, cost:'low',
+        ing:[i('豆乳',250,'ml'),i('酢',10,'ml'),i('ザーサイ',10,'g'),i('干しエビ',5,'g'),i('ごま油',5,'ml'),i('長ねぎ',15,'g')] },
+    ],
+    lunch: [
+      { name:'カツ丼', cuisine:'jp', cal:700, cost:'mid',
+        ing:[i('豚ロース',120,'g'),i('卵',2,'個'),i('玉ねぎ',0.5,'個'),i('ごはん',250,'g'),i('パン粉',20,'g'),i('醤油',15,'ml'),i('みりん',15,'ml')] },
+      { name:'ナポリタン', cuisine:'western', cal:650, cost:'low',
+        ing:[i('スパゲッティ',100,'g'),i('ウインナー',3,'本'),i('玉ねぎ',0.5,'個'),i('ピーマン',1,'個'),i('ケチャップ',30,'g'),i('バター',10,'g')] },
+      { name:'回鍋肉定食', cuisine:'cn', cal:680, cost:'low',
+        ing:[i('豚バラ肉',100,'g'),i('キャベツ',100,'g'),i('ピーマン',2,'個'),i('甜麺醤',10,'g'),i('豆板醤',5,'g'),i('ごはん',200,'g')] },
+      { name:'ハンバーグランチ', cuisine:'western', cal:720, cost:'mid',
+        ing:[i('合いびき肉',150,'g'),i('玉ねぎ',0.5,'個'),i('パン粉',15,'g'),i('卵',0.5,'個'),i('デミグラスソース',50,'g'),i('じゃがいも',1,'個')] },
+      { name:'天ぷらうどん', cuisine:'jp', cal:600, cost:'mid',
+        ing:[i('うどん',1,'玉'),i('エビ',3,'尾'),i('さつまいも',50,'g'),i('大葉',2,'枚'),i('天ぷら粉',30,'g'),i('めんつゆ',50,'ml')] },
+      { name:'担々麺', cuisine:'cn', cal:680, cost:'mid',
+        ing:[i('中華麺',1,'玉'),i('豚ひき肉',80,'g'),i('チンゲン菜',60,'g'),i('練りごま',15,'g'),i('豆板醤',5,'g'),i('ラー油',5,'ml')] },
+      { name:'タコライス', cuisine:'western', cal:650, cost:'mid',
+        ing:[i('合いびき肉',120,'g'),i('レタス',40,'g'),i('トマト',0.5,'個'),i('チーズ',30,'g'),i('ごはん',200,'g'),i('サルサソース',30,'g')] },
+      { name:'親子丼', cuisine:'jp', cal:620, cost:'low',
+        ing:[i('鶏もも肉',120,'g'),i('卵',2,'個'),i('玉ねぎ',0.5,'個'),i('ごはん',250,'g'),i('醤油',15,'ml'),i('みりん',15,'ml')] },
+      { name:'カルボナーラ', cuisine:'western', cal:700, cost:'high',
+        ing:[i('スパゲッティ',100,'g'),i('ベーコン',40,'g'),i('卵',1,'個'),i('パルメザンチーズ',20,'g'),i('生クリーム',50,'ml')] },
+      { name:'麻婆丼', cuisine:'cn', cal:660, cost:'low',
+        ing:[i('豆腐',200,'g'),i('豚ひき肉',80,'g'),i('長ねぎ',0.5,'本'),i('豆板醤',5,'g'),i('甜麺醤',10,'g'),i('ごはん',200,'g')] },
+    ],
+    dinner: [
+      { name:'すき焼き', cuisine:'jp', cal:650, cost:'high',
+        ing:[i('牛肩ロース',150,'g'),i('白菜',100,'g'),i('長ねぎ',0.5,'本'),i('しらたき',80,'g'),i('焼き豆腐',100,'g'),i('春菊',40,'g'),i('卵',1,'個'),i('砂糖',10,'g'),i('醤油',20,'ml'),i('みりん',20,'ml')] },
+      { name:'チキンのクリームシチュー', cuisine:'western', cal:580, cost:'mid',
+        ing:[i('鶏もも肉',120,'g'),i('じゃがいも',1,'個'),i('にんじん',0.5,'本'),i('玉ねぎ',0.5,'個'),i('牛乳',150,'ml'),i('バター',12,'g'),i('小麦粉',10,'g')] },
+      { name:'酢豚', cuisine:'cn', cal:620, cost:'mid',
+        ing:[i('豚肩ロース',120,'g'),i('玉ねぎ',0.5,'個'),i('ピーマン',2,'個'),i('にんじん',0.3,'本'),i('パイナップル',30,'g'),i('酢',20,'ml'),i('ケチャップ',20,'g')] },
+      { name:'ビーフシチュー', cuisine:'western', cal:680, cost:'high',
+        ing:[i('牛すね肉',150,'g'),i('じゃがいも',1,'個'),i('にんじん',0.5,'本'),i('玉ねぎ',0.5,'個'),i('トマト缶',0.3,'缶'),i('赤ワイン',30,'ml'),i('デミグラスソース',50,'g')] },
+      { name:'エビチリ＋中華スープ', cuisine:'cn', cal:550, cost:'mid',
+        ing:[i('エビ',120,'g'),i('長ねぎ',0.5,'本'),i('にんにく',1,'片'),i('生姜',5,'g'),i('豆板醤',5,'g'),i('ケチャップ',15,'g'),i('卵',1,'個'),i('わかめ',3,'g')] },
+      { name:'さばの味噌煮＋筑前煮', cuisine:'jp', cal:520, cost:'low',
+        ing:[i('さば',1,'切れ'),i('味噌',20,'g'),i('生姜',10,'g'),i('鶏もも肉',80,'g'),i('れんこん',50,'g'),i('にんじん',0.3,'本'),i('ごぼう',30,'g'),i('こんにゃく',40,'g'),i('醤油',15,'ml')] },
+      { name:'ローストポーク＋温野菜', cuisine:'western', cal:600, cost:'mid',
+        ing:[i('豚肩ロース',150,'g'),i('にんにく',1,'片'),i('ローズマリー',1,'枝'),i('じゃがいも',1,'個'),i('ブロッコリー',60,'g'),i('にんじん',0.5,'本')] },
+      { name:'生姜焼き定食', cuisine:'jp', cal:600, cost:'low',
+        ing:[i('豚ロース',120,'g'),i('生姜',10,'g'),i('玉ねぎ',0.5,'個'),i('キャベツ',60,'g'),i('ごはん',200,'g'),i('醤油',15,'ml'),i('みりん',15,'ml')] },
+      { name:'チーズリゾット', cuisine:'western', cal:620, cost:'high',
+        ing:[i('ごはん',200,'g'),i('パルメザンチーズ',30,'g'),i('玉ねぎ',0.5,'個'),i('バター',15,'g'),i('白ワイン',30,'ml'),i('鶏ガラスープの素',5,'g')] },
+      { name:'青椒肉絲', cuisine:'cn', cal:560, cost:'mid',
+        ing:[i('牛もも肉',120,'g'),i('ピーマン',3,'個'),i('たけのこ',50,'g'),i('醤油',12,'ml'),i('オイスターソース',10,'ml'),i('ごま油',8,'ml')] },
+    ]
+  }
+};
+
+// ── State ──
+let selectedAllergens = new Set();
+let currentPlan = null;
+
+function renderAllergyChips() {
+  document.getElementById('allergyGrid').innerHTML = ALLERGENS.map(a => `
+    <button class="allergy-chip" data-id="${a.id}" onclick="toggleAllergen('${a.id}')">
+      <span class="icon">${a.icon}</span><span>${a.label}</span><span class="x-mark">&times;</span>
+    </button>`).join('');
+}
+
+function toggleAllergen(id) {
+  if (selectedAllergens.has(id)) selectedAllergens.delete(id); else selectedAllergens.add(id);
+  document.querySelectorAll('.allergy-chip').forEach(c => c.classList.toggle('selected', selectedAllergens.has(c.dataset.id)));
+  updateAllergyWarning();
+}
+
+function updateAllergyWarning() {
+  const w = document.getElementById('allergyWarning'), t = document.getElementById('allergyWarningText');
+  if (selectedAllergens.size > 0) {
+    t.textContent = [...selectedAllergens].map(id => ALLERGENS.find(a=>a.id===id).label).join('・') + ' を含むレシピは除外されます';
+    w.classList.add('show');
+  } else w.classList.remove('show');
+}
+
+function getBannedIngredients() {
+  const b = new Set();
+  selectedAllergens.forEach(id => ALLERGENS.find(x=>x.id===id).ingredients.forEach(n=>b.add(n)));
+  return b;
+}
+
+function setupToggle(id) {
+  document.getElementById(id).addEventListener('click', e => {
+    const btn = e.target.closest('.toggle-btn'); if(!btn) return;
+    btn.parentElement.querySelectorAll('.toggle-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+  });
+}
+setupToggle('calToggle'); setupToggle('budgetToggle');
+function getCalMode() { return document.querySelector('#calToggle .toggle-btn.active').dataset.val; }
+function getBudgetMode() { return document.querySelector('#budgetToggle .toggle-btn.active').dataset.val; }
+
+function shuffle(arr) {
+  const a=[...arr]; for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a;
+}
+
+function filterMeals(pool) {
+  const banned=getBannedIngredients(), budget=getBudgetMode();
+  return pool.filter(m => {
+    if (m.ing.some(x => banned.has(x.n))) return false;
+    if (budget==='saving' && m.cost==='high') return false;
+    if (budget==='rich' && m.cost==='low') return false;
+    return true;
+  });
+}
+
+function pickMeals(pool, count) {
+  const filtered=filterMeals(pool);
+  if(!filtered.length) return [];
+  const shuffled=shuffle(filtered), picked=[], cc={jp:0,western:0,cn:0}, mx=Math.ceil(count/3)+1;
+  for(const m of shuffled){if(picked.length>=count)break;if(cc[m.cuisine]<mx){picked.push(m);cc[m.cuisine]++;}}
+  let idx=0;while(picked.length<count&&shuffled.length>0){picked.push(shuffled[idx%shuffled.length]);idx++;}
+  return picked;
+}
+
+function generate() {
+  const pool=DB[getCalMode()];
+  const b=pickMeals(pool.breakfast,7), l=pickMeals(pool.lunch,7), d=pickMeals(pool.dinner,7);
+  if(b.length<7||l.length<7||d.length<7){alert('選択した条件ではレシピが不足しています。\nアレルギーや予算の設定を見直してください。');return;}
+  currentPlan=DAYS.map((day,idx)=>({day,color:DAY_COLORS[idx],meals:[
+    {type:'breakfast',label:'朝食',...b[idx]},{type:'lunch',label:'昼食',...l[idx]},{type:'dinner',label:'夕食',...d[idx]}
+  ]}));
+  renderSummary(); renderPlan(); renderIngredients();
+}
+
+function renderSummary() {
+  const bar=document.getElementById('summaryBar'); bar.classList.add('show');
+  const totalCal=currentPlan.reduce((s,d)=>s+d.meals.reduce((ss,m)=>ss+m.cal,0),0);
+  const avgCal=Math.round(totalCal/7), cc={jp:0,western:0,cn:0};
+  currentPlan.forEach(d=>d.meals.forEach(m=>cc[m.cuisine]++));
+  const allIng=new Set(); currentPlan.forEach(d=>d.meals.forEach(m=>m.ing.forEach(x=>allIng.add(x.n))));
+  const bl={saving:'節約',normal:'通常',rich:'リッチ'};
+  bar.innerHTML=`
+    <div class="stat-card animate-in" style="animation-delay:0s"><div class="stat-num">${avgCal}</div><div class="stat-label">1日平均 kcal</div></div>
+    <div class="stat-card animate-in" style="animation-delay:.05s"><div class="stat-num">${cc.jp}</div><div class="stat-label">和食</div></div>
+    <div class="stat-card animate-in" style="animation-delay:.1s"><div class="stat-num">${cc.western}</div><div class="stat-label">洋食</div></div>
+    <div class="stat-card animate-in" style="animation-delay:.15s"><div class="stat-num">${cc.cn}</div><div class="stat-label">中華</div></div>
+    <div class="stat-card animate-in" style="animation-delay:.2s"><div class="stat-num">${allIng.size}</div><div class="stat-label">食材数</div></div>
+    <div class="stat-card animate-in" style="animation-delay:.25s"><div class="stat-num">${peopleCount}人</div><div class="stat-label">人数</div></div>`;
+}
+
+function renderPlan() {
+  const c=document.getElementById('weekPlan');
+  const calLabel=getCalMode()==='diet'?'ダイエット':'通常';
+  const bl={saving:'節約',normal:'通常',rich:'リッチ'};
+  let html=`<div class="section-header animate-in"><div class="icon" style="background:var(--primary-light);color:var(--primary);">&#128197;</div><h2>一週間の献立</h2><span class="badge">${calLabel} / ${bl[getBudgetMode()]} / ${peopleCount}人前</span></div>`;
+  currentPlan.forEach((d,idx)=>{
+    const tc=d.meals.reduce((s,m)=>s+m.cal,0);
+    const cl={jp:'和',western:'洋',cn:'中'};
+    html+=`<div class="day-card animate-in" style="animation-delay:${idx*.04}s"><div class="day-header open" onclick="toggleDay(this)"><span class="day-dot" style="background:${d.color}"></span><span class="day-name">${d.day}</span><span class="day-cal-badge">${tc} kcal/人</span><span class="day-arrow">&#9660;</span></div><div class="day-body">${d.meals.map(m=>`<div class="meal-row"><span class="meal-badge ${m.type}">${m.label}</span><span class="cuisine-pill ${m.cuisine}">${cl[m.cuisine]}</span><span class="meal-name">${m.name}</span><span class="meal-cal">${m.cal} kcal</span></div>`).join('')}<div class="day-total">合計 ${tc} kcal / 人</div></div></div>`;
+  });
+  c.innerHTML=html;
+}
+
+function toggleDay(el){el.classList.toggle('open');el.nextElementSibling.classList.toggle('collapsed');}
+
+// ── Aggregate quantities ──
+function aggregateIngredients() {
+  const map = {};
+  currentPlan.forEach(d => d.meals.forEach(m => m.ing.forEach(x => {
+    const key = x.n + '|' + x.u;
+    if (!map[key]) map[key] = { n: x.n, u: x.u, q: 0 };
+    map[key].q += x.q * peopleCount;
+  })));
+  return Object.values(map).map(x => ({ ...x, q: Math.round(x.q * 10) / 10 }));
+}
+
+function fmtQty(q, u) {
+  // Friendly formatting
+  const v = q % 1 === 0 ? q : q.toFixed(1);
+  return v + ' ' + u;
+}
+
+function renderIngredients() {
+  const container = document.getElementById('ingredients');
+  const agg = aggregateIngredients();
+  const byName = {};
+  agg.forEach(x => byName[x.n] = x);
+
+  const categories = {
+    '🥩 肉類': ['鶏むね肉','鶏もも肉','鶏ひき肉','豚ひき肉','豚もも肉','豚バラ肉','豚ロース','豚肩ロース','牛もも肉','牛肩ロース','牛すね肉','合いびき肉','ささみ','ベーコン','ハム','ウインナー'],
+    '🐟 魚介類': ['鮭','サーモン','タラ','さば','さば缶','ぶり','エビ','イカ','あさり','ホタテ','しらす','かつお節','干しエビ'],
+    '🥬 野菜・果物': ['玉ねぎ','長ねぎ','にんじん','大根','白菜','キャベツ','レタス','ロメインレタス','トマト','ミニトマト','きゅうり','ピーマン','ズッキーニ','ほうれん草','小松菜','チンゲン菜','ブロッコリー','春菊','大葉','パクチー','バジル','にら','さつまいも','じゃがいも','ごぼう','れんこん','たけのこ','もやし','にんにく','生姜','バナナ','アボカド','レモン','パイナップル'],
+    '🫘 豆腐・大豆製品': ['豆腐','焼き豆腐','納豆','豆乳','こんにゃく','しらたき'],
+    '🍄 きのこ・海藻': ['しめじ','えのき','きくらげ','わかめ','のり'],
+    '🥚 卵・乳製品': ['卵','うずらの卵','牛乳','生クリーム','バター','チーズ','パルメザンチーズ','モッツァレラチーズ','ギリシャヨーグルト','ホイップクリーム'],
+    '🍚 穀類・麺': ['ごはん','玄米','キヌア','うどん','中華麺','スパゲッティ','食パン','全粒粉パン','イングリッシュマフィン','蒸しパン','揚げパン','肉まん','オートミール','グラノーラ','春雨'],
+    '🧂 調味料・他': ['醤油','味噌','みりん','酢','塩','砂糖','ポン酢','めんつゆ','ごま油','オリーブオイル','ケチャップ','デミグラスソース','サルサソース','メープルシロップ','豆板醤','甜麺醤','オイスターソース','ラー油','練りごま','鶏ガラスープの素','白ワイン','赤ワイン','ごま','ケッパー','オリーブ','ザーサイ','たくあん','梅干し','ミックスベリー','ローズマリー','全粒粉クルトン','天ぷら粉','パン粉','小麦粉','ホットケーキミックス'],
+  };
+
+  const allNames = new Set(agg.map(x => x.n));
+
+  let html = `
+    <div class="section-header animate-in">
+      <div class="icon" style="background:var(--success-light);color:var(--success);">&#128722;</div>
+      <h2>買い物リスト</h2>
+      <span class="badge">${allNames.size} 品目 / ${peopleCount}人分</span>
+    </div>
+    <div class="ing-card animate-in">
+      <div class="ing-summary">クリックでチェック済みにできます（${peopleCount}人 &times; 7日分）</div>`;
+
+  for (const [cat, items] of Object.entries(categories)) {
+    const matched = items.filter(n => allNames.has(n));
+    if (!matched.length) continue;
+    html += `<div class="ing-cat-title">${cat} <span class="cnt">${matched.length}</span></div>`;
+    html += '<table class="ing-table">';
+    matched.forEach(n => {
+      const x = byName[n];
+      if (!x) return;
+      html += `<tr onclick="this.classList.toggle('checked')"><td><div class="td-name"><span class="check-icon"></span>${x.n}</div></td><td>${fmtQty(x.q, x.u)}</td><td>${getMemo(x.n, x.q, x.u)}</td></tr>`;
+    });
+    html += '</table>';
+  }
+
+  const categorized = new Set(Object.values(categories).flat());
+  const uncategorized = [...allNames].filter(n => !categorized.has(n));
+  if (uncategorized.length) {
+    html += `<div class="ing-cat-title">📦 その他 <span class="cnt">${uncategorized.length}</span></div><table class="ing-table">`;
+    uncategorized.forEach(n => {
+      const x = byName[n]; if(!x) return;
+      html += `<tr onclick="this.classList.toggle('checked')"><td><div class="td-name"><span class="check-icon"></span>${x.n}</div></td><td>${fmtQty(x.q, x.u)}</td><td>${getMemo(x.n, x.q, x.u)}</td></tr>`;
+    });
+    html += '</table>';
+  }
+
+  html += '</div>';
+  container.innerHTML = html;
+}
+
+// Buying guide memo
+function getMemo(name, qty, unit) {
+  if (unit === 'g') {
+    if (['鶏むね肉','鶏もも肉','豚もも肉','豚バラ肉','豚ロース','豚肩ロース','牛もも肉','牛肩ロース','牛すね肉','合いびき肉','ささみ','鶏ひき肉','豚ひき肉'].includes(name)) {
+      const packs = Math.ceil(qty / 300);
+      return `約${packs}パック (300g入)`;
+    }
+    if (name === 'ベーコン') return `約${Math.ceil(qty/150)}パック`;
+    if (name === '豆腐' || name === '焼き豆腐') return `約${Math.ceil(qty/300)}丁`;
+    if (name === 'ごはん' || name === '玄米') { const go = Math.ceil(qty / 330); return `約${go}合 (炊飯前)`; }
+    if (name === 'しらたき' || name === 'こんにゃく') return `約${Math.ceil(qty/200)}袋`;
+    if (name === 'もやし') return `約${Math.ceil(qty/200)}袋`;
+    if (name === 'ホットケーキミックス') return `約${Math.ceil(qty/200)}袋`;
+    if (name === 'チーズ') return `約${Math.ceil(qty/100)}パック`;
+    if (name === 'パルメザンチーズ') return qty > 50 ? '1本' : '少量';
+    if (name === 'ギリシャヨーグルト') return `${Math.ceil(qty/100)}個`;
+    if (name === 'グラノーラ') return `約${Math.ceil(qty/400)}袋`;
+    if (name === 'オートミール') return `約${Math.ceil(qty/300)}袋`;
+    if (name === 'しめじ' || name === 'えのき') return `${Math.ceil(qty/100)}パック`;
+    if (name === 'きくらげ') return `${Math.ceil(qty/20)}袋 (乾燥)`;
+    if (name === 'わかめ') return `${Math.ceil(qty/30)}袋 (乾燥)`;
+    if (name === 'ミックスベリー') return `${Math.ceil(qty/150)}袋 (冷凍)`;
+    if (name === 'ホイップクリーム') return `${Math.ceil(qty/100)}パック`;
+    if (name === '春雨') return `${Math.ceil(qty/80)}袋`;
+    if (name === 'スパゲッティ') return `約${Math.ceil(qty/500)}袋 (500g)`;
+    if (name === 'キヌア') return `${Math.ceil(qty/100)}袋`;
+    if (name === 'モッツァレラチーズ') return `${Math.ceil(qty/100)}個`;
+    if (['ブロッコリー'].includes(name)) return `${Math.ceil(qty/200)}株`;
+    if (name === 'キャベツ') return qty > 300 ? `${Math.ceil(qty/900)}玉` : `${Math.ceil(qty/450)}個 (半玉)`;
+    if (name === '白菜') return `約1/${Math.max(1,Math.round(2000/qty))}玉`;
+    if (name === 'ほうれん草' || name === '小松菜') return `${Math.ceil(qty/200)}束`;
+    if (name === 'チンゲン菜') return `${Math.ceil(qty/100)}株`;
+    if (name === '春菊') return `${Math.ceil(qty/150)}束`;
+    if (name === 'にら') return `${Math.ceil(qty/100)}束`;
+    if (name === 'たけのこ') return `${Math.ceil(qty/180)}パック (水煮)`;
+    if (name === 'れんこん') return `${Math.ceil(qty/200)}節`;
+    if (name === 'ごぼう') return `${Math.ceil(qty/150)}本`;
+    if (name === 'さつまいも') return `${Math.ceil(qty/200)}本`;
+    if (name === 'パイナップル') return `${Math.ceil(qty/400)}缶 (缶詰)`;
+    if (name === 'ザーサイ') return `${Math.ceil(qty/70)}瓶`;
+    if (name === 'たくあん') return '少量パック';
+  }
+  if (unit === 'ml') {
+    if (name === '豆乳') return `${Math.ceil(qty/1000)}パック (1L)`;
+    if (name === '牛乳') return `${Math.ceil(qty/1000)}パック (1L)`;
+    if (name === '生クリーム') return `${Math.ceil(qty/200)}パック (200ml)`;
+    if (name === 'めんつゆ') return `${Math.ceil(qty/500)}本`;
+    if (['醤油','みりん','酢','ポン酢','ごま油','オリーブオイル','ケチャップ','白ワイン','赤ワイン','メープルシロップ','ラー油'].includes(name)) return '常備品';
+  }
+  if (unit === '個') {
+    if (name === '卵') return `${Math.ceil(qty/10)}パック (10個入)`;
+    if (name === 'うずらの卵') return `${Math.ceil(qty/10)}パック`;
+    if (name === '玉ねぎ') { const n=Math.ceil(qty); return `${n}個`; }
+    if (name === 'じゃがいも') return `${Math.ceil(qty)}個`;
+    if (name === 'ミニトマト') return `${Math.ceil(qty/8)}パック`;
+  }
+  if (unit === '本') {
+    if (name === '長ねぎ') return `${Math.ceil(qty)}本`;
+    if (name === 'にんじん') return `${Math.ceil(qty)}本`;
+    if (name === 'きゅうり') return `${Math.ceil(qty)}本`;
+    if (name === 'ズッキーニ') return `${Math.ceil(qty)}本`;
+    if (name === 'バナナ') return `${Math.ceil(qty)}本`;
+    if (name === 'ウインナー') return `${Math.ceil(qty/6)}袋 (6本入)`;
+  }
+  if (unit === '切れ') return `${Math.ceil(qty)}切れ`;
+  if (unit === '尾') return `${Math.ceil(qty)}尾`;
+  if (unit === '缶') return `${Math.ceil(qty)}缶`;
+  if (unit === '玉') return `${Math.ceil(qty)}玉`;
+  if (unit === 'パック') return `${Math.ceil(qty)}パック`;
+  if (unit === '枚') {
+    if (name === '食パン') return `${Math.ceil(qty/6)}斤 (6枚切)`;
+    if (name === '全粒粉パン') return `${Math.ceil(qty/6)}袋`;
+    if (name === 'ベーコン') return `${Math.ceil(qty/5)}パック`;
+    if (name === 'ハム') return `${Math.ceil(qty/4)}パック (4枚入)`;
+    if (name === 'のり') return `${Math.ceil(qty/10)}袋 (10枚入)`;
+  }
+  if (unit === '片') return `${Math.ceil(qty)}片`;
+  if (unit === '粒') return `${Math.ceil(qty)}粒`;
+  if (unit === '枝') return `${Math.ceil(qty)}枝`;
+  if (['g','ml'].includes(unit)) return '';
+  return '';
+}
+
+// Init
+document.getElementById('generateBtn').addEventListener('click', generate);
+renderAllergyChips();
+generate();
+</script>
+</body>
+</html>
