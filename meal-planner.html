@@ -36,7 +36,6 @@ body { font-family:'Inter','Noto Sans JP',-apple-system,BlinkMacSystemFont,sans-
 .toggle-btn.active { background:var(--primary); color:#fff; box-shadow:0 2px 8px rgba(79,70,229,.3); }
 .toggle-btn:hover:not(.active) { background:var(--primary-light); color:var(--primary); }
 
-/* People selector */
 .people-selector { display:flex; align-items:center; gap:0; border-radius:var(--radius-sm); border:1.5px solid var(--border); background:var(--bg); overflow:hidden; }
 .people-btn { width:42px; height:42px; border:none; cursor:pointer; font-size:1.1rem; font-weight:700; background:transparent; color:var(--primary); transition:all .15s; font-family:inherit; display:flex; align-items:center; justify-content:center; }
 .people-btn:hover { background:var(--primary-light); }
@@ -85,7 +84,8 @@ body { font-family:'Inter','Noto Sans JP',-apple-system,BlinkMacSystemFont,sans-
 .day-header.open .day-arrow { transform:rotate(180deg); }
 .day-body { padding:0 20px 16px; }
 .day-body.collapsed { display:none; }
-.meal-row { display:flex; align-items:center; gap:10px; padding:10px 0; border-bottom:1px solid var(--border-light); }
+.meal-row { display:flex; align-items:center; gap:10px; padding:10px 0; border-bottom:1px solid var(--border-light); cursor:pointer; transition:background .15s; border-radius:6px; padding-left:4px; padding-right:4px; }
+.meal-row:hover { background:var(--primary-light); }
 .meal-row:last-child { border-bottom:none; }
 .meal-badge { font-size:.65rem; font-weight:700; color:#fff; padding:3px 10px; border-radius:50px; flex-shrink:0; letter-spacing:.04em; }
 .meal-badge.breakfast { background:linear-gradient(135deg,#f59e0b,#f97316); }
@@ -97,7 +97,32 @@ body { font-family:'Inter','Noto Sans JP',-apple-system,BlinkMacSystemFont,sans-
 .cuisine-pill.cn { background:#fff7ed; color:#ea580c; }
 .meal-name { font-weight:600; font-size:.85rem; flex:1; min-width:0; }
 .meal-cal { font-size:.72rem; color:var(--text-muted); font-weight:500; white-space:nowrap; flex-shrink:0; }
+.meal-recipe-icon { font-size:.7rem; color:var(--primary); opacity:.5; flex-shrink:0; }
 .day-total { text-align:right; font-size:.75rem; font-weight:700; color:var(--primary); padding-top:6px; }
+
+/* ── Recipe Modal ── */
+.modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:1000; align-items:center; justify-content:center; padding:16px; backdrop-filter:blur(4px); }
+.modal-overlay.open { display:flex; }
+.modal { background:var(--card); border-radius:var(--radius); max-width:560px; width:100%; max-height:85vh; overflow-y:auto; box-shadow:0 25px 60px rgba(0,0,0,.25); animation:modalIn .25s ease-out; }
+@keyframes modalIn { from{opacity:0;transform:scale(.95) translateY(10px)} to{opacity:1;transform:scale(1) translateY(0)} }
+.modal-head { padding:24px 24px 0; display:flex; align-items:flex-start; gap:12px; }
+.modal-head-text { flex:1; }
+.modal-title { font-size:1.15rem; font-weight:800; line-height:1.3; }
+.modal-meta { display:flex; gap:8px; align-items:center; margin-top:8px; flex-wrap:wrap; }
+.modal-close { width:36px; height:36px; border-radius:50%; border:none; background:var(--bg); cursor:pointer; font-size:1.1rem; display:flex; align-items:center; justify-content:center; color:var(--text-muted); transition:all .15s; flex-shrink:0; font-family:inherit; }
+.modal-close:hover { background:var(--danger-light); color:var(--danger); }
+.modal-section { padding:0 24px; margin-top:20px; }
+.modal-section-title { font-size:.75rem; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--text-muted); margin-bottom:10px; display:flex; align-items:center; gap:6px; }
+.modal-ing-list { list-style:none; display:grid; grid-template-columns:1fr 1fr; gap:4px 16px; }
+.modal-ing-item { font-size:.82rem; padding:5px 0; display:flex; justify-content:space-between; border-bottom:1px dotted var(--border-light); }
+.modal-ing-item .ing-name { color:var(--text); }
+.modal-ing-item .ing-qty { font-weight:700; color:var(--primary); white-space:nowrap; margin-left:8px; }
+.modal-steps { list-style:none; counter-reset:step; }
+.modal-steps li { counter-increment:step; padding:10px 0 10px 40px; position:relative; font-size:.85rem; line-height:1.7; border-bottom:1px solid var(--border-light); color:var(--text-secondary); }
+.modal-steps li:last-child { border-bottom:none; }
+.modal-steps li::before { content:counter(step); position:absolute; left:0; top:10px; width:28px; height:28px; border-radius:50%; background:linear-gradient(135deg,var(--primary),#7c3aed); color:#fff; font-size:.75rem; font-weight:700; display:flex; align-items:center; justify-content:center; }
+.modal-footer { padding:16px 24px 24px; text-align:center; }
+.modal-footer .tip { font-size:.72rem; color:var(--text-muted); background:var(--bg); padding:8px 14px; border-radius:var(--radius-xs); display:inline-block; }
 
 /* ── Shopping list table ── */
 .ing-card { background:var(--card); border-radius:var(--radius); padding:24px; box-shadow:var(--shadow-sm); border:1px solid var(--border-light); }
@@ -129,6 +154,8 @@ body { font-family:'Inter','Noto Sans JP',-apple-system,BlinkMacSystemFont,sans-
   .meal-name{font-size:.78rem} .btn-generate{width:100%}
   .summary-bar{grid-template-columns:repeat(2,1fr)}
   .ing-table td:nth-child(3){display:none}
+  .modal{max-height:90vh;border-radius:12px}
+  .modal-ing-list{grid-template-columns:1fr}
 }
 </style>
 </head>
@@ -190,9 +217,12 @@ body { font-family:'Inter','Noto Sans JP',-apple-system,BlinkMacSystemFont,sans-
   <div id="ingredients"></div>
 </div>
 
+<!-- Recipe Modal -->
+<div class="modal-overlay" id="recipeModal" onclick="if(event.target===this)closeRecipe()">
+  <div class="modal" id="recipeModalContent"></div>
+</div>
+
 <script>
-// ── Helper: ingredient shorthand ──
-// i('name', qty, 'unit') → { n, q, u }
 function i(n, q, u) { return { n, q, u }; }
 
 let peopleCount = 2;
@@ -220,142 +250,201 @@ const ALLERGENS = [
 const DAYS = ['月曜日','火曜日','水曜日','木曜日','金曜日','土曜日','日曜日'];
 const DAY_COLORS = ['#4f46e5','#7c3aed','#ec4899','#f59e0b','#10b981','#3b82f6','#ef4444'];
 
-// ── Meal database with quantities (per 1 person) ──
 const DB = {
   diet: {
     breakfast: [
       { name:'オートミール粥（梅干し・しらす）', cuisine:'jp', cal:250, cost:'low',
-        ing:[i('オートミール',40,'g'),i('梅干し',1,'個'),i('しらす',15,'g'),i('のり',1,'枚')] },
+        ing:[i('オートミール',40,'g'),i('梅干し',1,'個'),i('しらす',15,'g'),i('のり',1,'枚')],
+        steps:['鍋にオートミールと水200mlを入れ、中火にかける','沸騰したら弱火にし、2〜3分かき混ぜながら煮る','器に盛り、梅干しとしらすをのせる','のりをちぎって散らして完成'] },
       { name:'豆腐とわかめの味噌汁＋玄米おにぎり', cuisine:'jp', cal:280, cost:'low',
-        ing:[i('豆腐',150,'g'),i('わかめ',3,'g'),i('味噌',18,'g'),i('玄米',150,'g')] },
+        ing:[i('豆腐',150,'g'),i('わかめ',3,'g'),i('味噌',18,'g'),i('玄米',150,'g')],
+        steps:['わかめを水で戻す。豆腐をさいの目に切る','鍋に水300mlを沸かし、豆腐とわかめを入れる','火を止めて味噌を溶き入れる','玄米は塩少々を混ぜ、おにぎりに握る'] },
       { name:'アボカドトースト＋ゆで卵', cuisine:'western', cal:300, cost:'mid',
-        ing:[i('全粒粉パン',1,'枚'),i('アボカド',0.5,'個'),i('卵',1,'個'),i('レモン',0.25,'個')] },
+        ing:[i('全粒粉パン',1,'枚'),i('アボカド',0.5,'個'),i('卵',1,'個'),i('レモン',0.25,'個')],
+        steps:['卵を沸騰した湯で7分茹で、冷水にとって殻をむく','アボカドをフォークで粗くつぶし、レモン汁と塩少々を混ぜる','パンをトースターで焼く','焼いたパンにアボカドを塗り、半分に切ったゆで卵をのせる'] },
       { name:'ギリシャヨーグルト＋グラノーラ', cuisine:'western', cal:260, cost:'mid',
-        ing:[i('ギリシャヨーグルト',150,'g'),i('グラノーラ',40,'g'),i('ミックスベリー',30,'g')] },
+        ing:[i('ギリシャヨーグルト',150,'g'),i('グラノーラ',40,'g'),i('ミックスベリー',30,'g')],
+        steps:['器にギリシャヨーグルトを盛る','グラノーラをかける','ミックスベリーをトッピングして完成','お好みではちみつを少量かけても美味しい'] },
       { name:'中華風豆乳スープ＋蒸しパン', cuisine:'cn', cal:240, cost:'low',
-        ing:[i('豆乳',200,'ml'),i('鶏ガラスープの素',5,'g'),i('小松菜',50,'g'),i('蒸しパン',1,'個')] },
+        ing:[i('豆乳',200,'ml'),i('鶏ガラスープの素',5,'g'),i('小松菜',50,'g'),i('蒸しパン',1,'個')],
+        steps:['小松菜を3cm幅に切る','鍋に豆乳と鶏ガラスープの素を入れ、弱火で温める','小松菜を加え、しんなりするまで2分煮る','蒸しパンをレンジで20秒温めて添える'] },
       { name:'納豆ごはん＋具だくさん味噌汁', cuisine:'jp', cal:290, cost:'low',
-        ing:[i('納豆',1,'パック'),i('ごはん',150,'g'),i('大根',40,'g'),i('にんじん',30,'g'),i('味噌',18,'g')] },
+        ing:[i('納豆',1,'パック'),i('ごはん',150,'g'),i('大根',40,'g'),i('にんじん',30,'g'),i('味噌',18,'g')],
+        steps:['大根とにんじんをいちょう切りにする','鍋に水300mlと野菜を入れ、中火で柔らかくなるまで煮る','火を止め、味噌を溶き入れる','納豆に付属のタレを混ぜ、ごはんにのせる'] },
       { name:'スムージーボウル', cuisine:'western', cal:230, cost:'low',
-        ing:[i('バナナ',1,'本'),i('ほうれん草',30,'g'),i('豆乳',150,'ml'),i('グラノーラ',30,'g')] },
+        ing:[i('バナナ',1,'本'),i('ほうれん草',30,'g'),i('豆乳',150,'ml'),i('グラノーラ',30,'g')],
+        steps:['バナナは事前に冷凍しておく（前夜にカットして冷凍庫へ）','冷凍バナナ、ほうれん草、豆乳をミキサーで撹拌する','器に注ぎ、グラノーラをトッピングする','お好みでフルーツを追加しても良い'] },
       { name:'温泉卵のせ雑炊', cuisine:'jp', cal:260, cost:'low',
-        ing:[i('ごはん',150,'g'),i('卵',1,'個'),i('長ねぎ',20,'g'),i('鶏ガラスープの素',5,'g'),i('のり',1,'枚')] },
+        ing:[i('ごはん',150,'g'),i('卵',1,'個'),i('長ねぎ',20,'g'),i('鶏ガラスープの素',5,'g'),i('のり',1,'枚')],
+        steps:['長ねぎを小口切りにする','鍋に水300ml、鶏ガラスープの素、ごはんを入れて中火で煮る','5分ほど煮たら火を弱め、卵を割り入れて蓋をし2分','器に盛り、のりをちぎってのせる'] },
       { name:'トマトとモッツァレラのブルスケッタ', cuisine:'western', cal:280, cost:'high',
-        ing:[i('全粒粉パン',1,'枚'),i('トマト',0.5,'個'),i('モッツァレラチーズ',50,'g'),i('オリーブオイル',8,'ml'),i('バジル',2,'枚')] },
+        ing:[i('全粒粉パン',1,'枚'),i('トマト',0.5,'個'),i('モッツァレラチーズ',50,'g'),i('オリーブオイル',8,'ml'),i('バジル',2,'枚')],
+        steps:['トマトを1cm角に切り、塩少々をふる','モッツァレラチーズを手でちぎる','パンをトースターでカリッと焼く','パンにトマトとチーズをのせ、オリーブオイルをかけバジルを飾る'] },
       { name:'中華風蒸し野菜プレート', cuisine:'cn', cal:220, cost:'low',
-        ing:[i('ブロッコリー',60,'g'),i('にんじん',40,'g'),i('もやし',50,'g'),i('ポン酢',15,'ml'),i('ごま油',5,'ml')] },
+        ing:[i('ブロッコリー',60,'g'),i('にんじん',40,'g'),i('もやし',50,'g'),i('ポン酢',15,'ml'),i('ごま油',5,'ml')],
+        steps:['ブロッコリーを小房に分け、にんじんを薄切りにする','耐熱皿に野菜を並べ、ラップをしてレンジ600Wで3分加熱','ポン酢とごま油を混ぜてタレを作る','蒸し野菜にタレをかけて完成'] },
     ],
     lunch: [
       { name:'鶏むね肉のサラダチキン丼', cuisine:'jp', cal:380, cost:'low',
-        ing:[i('鶏むね肉',120,'g'),i('レタス',40,'g'),i('トマト',0.5,'個'),i('ごはん',150,'g'),i('ポン酢',15,'ml')] },
+        ing:[i('鶏むね肉',120,'g'),i('レタス',40,'g'),i('トマト',0.5,'個'),i('ごはん',150,'g'),i('ポン酢',15,'ml')],
+        steps:['鶏むね肉に塩と酒少々をまぶし、耐熱容器に入れラップをする','レンジ600Wで4分加熱し、そのまま5分蒸らす','粗熱が取れたら薄くスライスする','ごはんにちぎったレタス、トマト、チキンを盛りポン酢をかける'] },
       { name:'ささみと野菜の中華春雨サラダ', cuisine:'cn', cal:320, cost:'low',
-        ing:[i('ささみ',80,'g'),i('春雨',30,'g'),i('きゅうり',0.5,'本'),i('にんじん',30,'g'),i('ごま油',5,'ml'),i('酢',10,'ml')] },
+        ing:[i('ささみ',80,'g'),i('春雨',30,'g'),i('きゅうり',0.5,'本'),i('にんじん',30,'g'),i('ごま油',5,'ml'),i('酢',10,'ml')],
+        steps:['ささみを茹でて冷まし、手で細くほぐす','春雨を熱湯で3分戻し、水気を切って食べやすく切る','きゅうりとにんじんを千切りにする','全材料を合わせ、酢・ごま油・醤油少々で和える'] },
       { name:'グリルチキンのシーザーサラダ', cuisine:'western', cal:350, cost:'mid',
-        ing:[i('鶏むね肉',120,'g'),i('ロメインレタス',60,'g'),i('パルメザンチーズ',15,'g'),i('全粒粉クルトン',20,'g')] },
+        ing:[i('鶏むね肉',120,'g'),i('ロメインレタス',60,'g'),i('パルメザンチーズ',15,'g'),i('全粒粉クルトン',20,'g')],
+        steps:['鶏むね肉に塩胡椒をし、フライパンで両面こんがり焼く（中火で片面4分ずつ）','焼けたら5分休ませてからスライスする','レタスをちぎって皿に盛る','チキン、クルトン、削ったパルメザンチーズをのせドレッシングをかける'] },
       { name:'蒸し鶏の冷やし中華風', cuisine:'cn', cal:360, cost:'low',
-        ing:[i('鶏むね肉',100,'g'),i('中華麺',1,'玉'),i('きゅうり',0.5,'本'),i('卵',1,'個'),i('トマト',0.5,'個'),i('ごま',5,'g')] },
+        ing:[i('鶏むね肉',100,'g'),i('中華麺',1,'玉'),i('きゅうり',0.5,'本'),i('卵',1,'個'),i('トマト',0.5,'個'),i('ごま',5,'g')],
+        steps:['鶏むね肉を茹でて冷まし、手でほぐす。卵は薄焼きにして細切り','中華麺を表示時間通り茹で、冷水でしめる','きゅうりとトマトを千切り・くし切りにする','麺の上に具材を彩りよく盛り、ごまをふりタレをかける'] },
       { name:'サーモンポケ丼', cuisine:'western', cal:400, cost:'high',
-        ing:[i('サーモン',80,'g'),i('アボカド',0.5,'個'),i('玄米',150,'g'),i('醤油',10,'ml'),i('ごま',3,'g')] },
+        ing:[i('サーモン',80,'g'),i('アボカド',0.5,'個'),i('玄米',150,'g'),i('醤油',10,'ml'),i('ごま',3,'g')],
+        steps:['サーモンを2cm角に切り、醤油に5分漬ける','アボカドを2cm角に切る','器に玄米を盛る','サーモンとアボカドをのせ、ごまをふって完成'] },
       { name:'豚しゃぶサラダうどん', cuisine:'jp', cal:370, cost:'mid',
-        ing:[i('豚もも肉',80,'g'),i('うどん',1,'玉'),i('レタス',40,'g'),i('トマト',0.5,'個'),i('ポン酢',20,'ml')] },
+        ing:[i('豚もも肉',80,'g'),i('うどん',1,'玉'),i('レタス',40,'g'),i('トマト',0.5,'個'),i('ポン酢',20,'ml')],
+        steps:['うどんを茹でて冷水でしめ、水気を切る','豚もも肉を沸騰した湯でさっと茹で、冷水にとる','レタスをちぎり、トマトをくし切りにする','うどんに野菜と豚しゃぶを盛り、ポン酢をかける'] },
       { name:'エビと豆腐の中華あんかけ', cuisine:'cn', cal:340, cost:'mid',
-        ing:[i('エビ',80,'g'),i('豆腐',150,'g'),i('チンゲン菜',80,'g'),i('生姜',5,'g'),i('鶏ガラスープの素',5,'g')] },
+        ing:[i('エビ',80,'g'),i('豆腐',150,'g'),i('チンゲン菜',80,'g'),i('生姜',5,'g'),i('鶏ガラスープの素',5,'g')],
+        steps:['エビの殻をむき背わたを取る。豆腐を一口大に切る','フライパンに油少々を熱し、みじん切りの生姜を炒める','エビ、豆腐、チンゲン菜を加えて炒め合わせる','水100ml、鶏ガラスープの素を加え、水溶き片栗粉でとろみをつける'] },
       { name:'鯖缶と大葉の混ぜごはん', cuisine:'jp', cal:350, cost:'low',
-        ing:[i('さば缶',0.5,'缶'),i('大葉',3,'枚'),i('ごはん',150,'g'),i('生姜',5,'g'),i('ごま',3,'g'),i('醤油',8,'ml')] },
+        ing:[i('さば缶',0.5,'缶'),i('大葉',3,'枚'),i('ごはん',150,'g'),i('生姜',5,'g'),i('ごま',3,'g'),i('醤油',8,'ml')],
+        steps:['さば缶の汁を軽く切り、身をほぐす','大葉を千切り、生姜をみじん切りにする','温かいごはんにさば、大葉、生姜、ごまを混ぜる','醤油を回しかけてさっくり混ぜて完成'] },
       { name:'チキンとキヌアのパワーサラダ', cuisine:'western', cal:380, cost:'high',
-        ing:[i('鶏むね肉',100,'g'),i('キヌア',40,'g'),i('ミニトマト',5,'個'),i('きゅうり',0.5,'本'),i('オリーブオイル',10,'ml'),i('レモン',0.25,'個')] },
+        ing:[i('鶏むね肉',100,'g'),i('キヌア',40,'g'),i('ミニトマト',5,'個'),i('きゅうり',0.5,'本'),i('オリーブオイル',10,'ml'),i('レモン',0.25,'個')],
+        steps:['キヌアを水で洗い、たっぷりの水で15分茹でてザルにあげる','鶏むね肉に塩胡椒をし、レンジ600Wで4分加熱して蒸らし、ほぐす','ミニトマトを半分に切り、きゅうりを角切りにする','全材料を合わせ、オリーブオイルとレモン汁で和える'] },
       { name:'もやしたっぷり塩焼きそば', cuisine:'cn', cal:330, cost:'low',
-        ing:[i('中華麺',1,'玉'),i('もやし',100,'g'),i('キャベツ',60,'g'),i('豚もも肉',60,'g'),i('塩',2,'g'),i('ごま油',5,'ml')] },
+        ing:[i('中華麺',1,'玉'),i('もやし',100,'g'),i('キャベツ',60,'g'),i('豚もも肉',60,'g'),i('塩',2,'g'),i('ごま油',5,'ml')],
+        steps:['豚肉を一口大に切り、キャベツをざく切りにする','フライパンにごま油を熱し、豚肉を炒める','もやし、キャベツを加えて強火で手早く炒める','麺を加え、塩・胡椒で味を調えてほぐしながら炒め合わせる'] },
     ],
     dinner: [
       { name:'鮭のホイル焼き＋きのこ添え', cuisine:'jp', cal:350, cost:'mid',
-        ing:[i('鮭',1,'切れ'),i('しめじ',50,'g'),i('えのき',50,'g'),i('玉ねぎ',0.25,'個'),i('バター',8,'g'),i('ポン酢',15,'ml')] },
+        ing:[i('鮭',1,'切れ'),i('しめじ',50,'g'),i('えのき',50,'g'),i('玉ねぎ',0.25,'個'),i('バター',8,'g'),i('ポン酢',15,'ml')],
+        steps:['アルミホイルに薄切りの玉ねぎを敷き、鮭をのせる','しめじとえのきを鮭の周りに散らし、バターをのせる','ホイルをしっかり包み、フライパンに入れ蓋をして中火で12分蒸し焼き','開封してポン酢をかけていただく'] },
       { name:'鶏むね肉のトマト煮込み', cuisine:'western', cal:380, cost:'mid',
-        ing:[i('鶏むね肉',130,'g'),i('トマト缶',0.5,'缶'),i('玉ねぎ',0.5,'個'),i('ズッキーニ',0.5,'本'),i('にんにく',1,'片'),i('オリーブオイル',8,'ml')] },
+        ing:[i('鶏むね肉',130,'g'),i('トマト缶',0.5,'缶'),i('玉ねぎ',0.5,'個'),i('ズッキーニ',0.5,'本'),i('にんにく',1,'片'),i('オリーブオイル',8,'ml')],
+        steps:['鶏むね肉を一口大に切り、塩胡椒をする。玉ねぎとズッキーニを1cm角に切る','鍋にオリーブオイルとみじん切りにんにくを入れ、弱火で香りを出す','鶏肉を加えて表面を焼き、玉ねぎとズッキーニを加えて炒める','トマト缶と水50mlを加え、蓋をして弱火で15分煮込む'] },
       { name:'麻婆豆腐（ヘルシー版）', cuisine:'cn', cal:330, cost:'low',
-        ing:[i('豆腐',200,'g'),i('鶏ひき肉',80,'g'),i('長ねぎ',0.5,'本'),i('豆板醤',5,'g'),i('にんにく',1,'片'),i('生姜',5,'g')] },
+        ing:[i('豆腐',200,'g'),i('鶏ひき肉',80,'g'),i('長ねぎ',0.5,'本'),i('豆板醤',5,'g'),i('にんにく',1,'片'),i('生姜',5,'g')],
+        steps:['豆腐を2cm角に切り、熱湯で2分下茹でして水気を切る','フライパンに油少々を熱し、みじん切りのにんにく・生姜を炒める','鶏ひき肉を加えてパラパラになるまで炒め、豆板醤を加える','豆腐と水100mlを加え、5分煮て水溶き片栗粉でとろみをつけ、ねぎを散らす'] },
       { name:'タラのアクアパッツァ', cuisine:'western', cal:300, cost:'high',
-        ing:[i('タラ',1,'切れ'),i('ミニトマト',6,'個'),i('あさり',80,'g'),i('オリーブ',5,'粒'),i('ケッパー',5,'g'),i('白ワイン',30,'ml')] },
+        ing:[i('タラ',1,'切れ'),i('ミニトマト',6,'個'),i('あさり',80,'g'),i('オリーブ',5,'粒'),i('ケッパー',5,'g'),i('白ワイン',30,'ml')],
+        steps:['あさりは塩水で砂抜きする。タラに塩をふり10分置き、水気を拭く','フライパンにオリーブオイルを熱し、タラを両面軽く焼く','あさり、ミニトマト、オリーブ、ケッパーを加える','白ワインと水50mlを注ぎ、蓋をして中火で8分蒸し煮する'] },
       { name:'肉豆腐', cuisine:'jp', cal:360, cost:'mid',
-        ing:[i('牛もも肉',100,'g'),i('豆腐',200,'g'),i('白菜',80,'g'),i('長ねぎ',0.5,'本'),i('しらたき',80,'g'),i('醤油',15,'ml'),i('みりん',15,'ml')] },
+        ing:[i('牛もも肉',100,'g'),i('豆腐',200,'g'),i('白菜',80,'g'),i('長ねぎ',0.5,'本'),i('しらたき',80,'g'),i('醤油',15,'ml'),i('みりん',15,'ml')],
+        steps:['しらたきを下茹でする。豆腐を一口大、白菜をざく切り、ねぎを斜め切りにする','鍋に水200ml、醤油、みりんを合わせて煮立てる','牛肉を広げて入れ、アクを取る','豆腐、白菜、しらたき、ねぎを加え、蓋をして中火で10分煮る'] },
       { name:'海鮮八宝菜', cuisine:'cn', cal:320, cost:'mid',
-        ing:[i('エビ',60,'g'),i('イカ',60,'g'),i('白菜',80,'g'),i('にんじん',30,'g'),i('きくらげ',5,'g'),i('うずらの卵',3,'個'),i('オイスターソース',12,'ml')] },
+        ing:[i('エビ',60,'g'),i('イカ',60,'g'),i('白菜',80,'g'),i('にんじん',30,'g'),i('きくらげ',5,'g'),i('うずらの卵',3,'個'),i('オイスターソース',12,'ml')],
+        steps:['エビは殻をむき、イカは一口大に切る。きくらげは水で戻す','白菜はざく切り、にんじんは短冊切りにする','フライパンに油を熱し、エビとイカを炒めて一旦取り出す','野菜を炒め、海鮮を戻し、オイスターソースで味付けし水溶き片栗粉でまとめる'] },
       { name:'ぶりの照り焼き＋お浸し', cuisine:'jp', cal:370, cost:'mid',
-        ing:[i('ぶり',1,'切れ'),i('醤油',15,'ml'),i('みりん',15,'ml'),i('ほうれん草',80,'g'),i('かつお節',3,'g')] },
+        ing:[i('ぶり',1,'切れ'),i('醤油',15,'ml'),i('みりん',15,'ml'),i('ほうれん草',80,'g'),i('かつお節',3,'g')],
+        steps:['ぶりに塩をふり10分置き、水気を拭く','フライパンに油少々を熱し、ぶりを両面こんがり焼く','醤油とみりんを加え、スプーンでタレを回しかけながら照りを出す','ほうれん草は茹でて冷水にとり、水気を絞ってかつお節と醤油少々で和える'] },
       { name:'鶏ささみのレモンハーブグリル', cuisine:'western', cal:310, cost:'mid',
-        ing:[i('ささみ',120,'g'),i('レモン',0.5,'個'),i('ローズマリー',1,'枝'),i('ブロッコリー',80,'g'),i('オリーブオイル',8,'ml')] },
+        ing:[i('ささみ',120,'g'),i('レモン',0.5,'個'),i('ローズマリー',1,'枝'),i('ブロッコリー',80,'g'),i('オリーブオイル',8,'ml')],
+        steps:['ささみの筋を取り、塩胡椒とオリーブオイル・レモン汁で15分マリネする','ブロッコリーを小房に分け、塩茹でする','フライパンにオリーブオイルを熱し、ローズマリーと共にささみを中火で焼く','片面3分ずつ焼き、レモンスライスとブロッコリーを添える'] },
       { name:'豆腐チャンプルー', cuisine:'jp', cal:320, cost:'low',
-        ing:[i('豆腐',200,'g'),i('もやし',100,'g'),i('にら',50,'g'),i('卵',1,'個'),i('ごま油',8,'ml'),i('かつお節',3,'g')] },
+        ing:[i('豆腐',200,'g'),i('もやし',100,'g'),i('にら',50,'g'),i('卵',1,'個'),i('ごま油',8,'ml'),i('かつお節',3,'g')],
+        steps:['豆腐をキッチンペーパーで包み、重しをして水切り（15分）','にらを4cm幅に切る。豆腐を手で大きくちぎる','フライパンにごま油を熱し、豆腐を焼き色がつくまで焼く','もやし、にらを加えて炒め、溶き卵を回し入れ、かつお節と醤油少々で味付け'] },
       { name:'蒸し鶏の葱ソースがけ', cuisine:'cn', cal:300, cost:'low',
-        ing:[i('鶏むね肉',130,'g'),i('長ねぎ',1,'本'),i('生姜',10,'g'),i('ごま油',10,'ml'),i('醤油',10,'ml')] },
+        ing:[i('鶏むね肉',130,'g'),i('長ねぎ',1,'本'),i('生姜',10,'g'),i('ごま油',10,'ml'),i('醤油',10,'ml')],
+        steps:['鶏むね肉に塩と酒をまぶし、耐熱皿に入れてラップをしレンジ600Wで5分加熱','そのまま5分蒸らしてから薄くスライスする','長ねぎと生姜をみじん切りにし、ごま油と醤油を混ぜてソースを作る','スライスした鶏肉に葱ソースをたっぷりかける'] },
     ]
   },
   normal: {
     breakfast: [
       { name:'焼き鮭定食', cuisine:'jp', cal:450, cost:'mid',
-        ing:[i('鮭',1,'切れ'),i('ごはん',200,'g'),i('味噌',18,'g'),i('豆腐',80,'g'),i('たくあん',20,'g')] },
+        ing:[i('鮭',1,'切れ'),i('ごはん',200,'g'),i('味噌',18,'g'),i('豆腐',80,'g'),i('たくあん',20,'g')],
+        steps:['鮭に軽く塩をふり、グリルまたはフライパンで両面こんがり焼く（片面4分ずつ）','鍋に水300mlを沸かし、さいの目の豆腐を入れ味噌を溶いて味噌汁を作る','ごはんを茶碗によそう','鮭、味噌汁、たくあんを添えて定食スタイルで盛り付ける'] },
       { name:'フレンチトースト＋ベーコン', cuisine:'western', cal:480, cost:'mid',
-        ing:[i('食パン',2,'枚'),i('卵',1,'個'),i('牛乳',80,'ml'),i('バター',10,'g'),i('ベーコン',2,'枚'),i('メープルシロップ',15,'ml')] },
+        ing:[i('食パン',2,'枚'),i('卵',1,'個'),i('牛乳',80,'ml'),i('バター',10,'g'),i('ベーコン',2,'枚'),i('メープルシロップ',15,'ml')],
+        steps:['卵と牛乳を混ぜ、食パンを浸して両面にしっかり染み込ませる（5分以上）','フライパンにバターを溶かし、弱火でパンを両面じっくり焼く（片面3分）','別のフライパンでベーコンをカリカリに焼く','皿に盛り合わせ、メープルシロップをかける'] },
       { name:'中華粥＋油条風揚げパン', cuisine:'cn', cal:420, cost:'low',
-        ing:[i('ごはん',150,'g'),i('鶏ガラスープの素',5,'g'),i('生姜',5,'g'),i('ザーサイ',15,'g'),i('パクチー',5,'g'),i('揚げパン',1,'本')] },
+        ing:[i('ごはん',150,'g'),i('鶏ガラスープの素',5,'g'),i('生姜',5,'g'),i('ザーサイ',15,'g'),i('パクチー',5,'g'),i('揚げパン',1,'本')],
+        steps:['鍋にごはんと水500ml、鶏ガラスープの素、千切り生姜を入れる','中火で沸騰させたら弱火にし、10分ほどとろみがつくまで煮る','器に盛り、刻んだザーサイとパクチーをのせる','揚げパンを添えていただく'] },
       { name:'パンケーキ＋フルーツ', cuisine:'western', cal:500, cost:'mid',
-        ing:[i('ホットケーキミックス',80,'g'),i('卵',1,'個'),i('牛乳',60,'ml'),i('バナナ',1,'本'),i('ホイップクリーム',20,'g')] },
+        ing:[i('ホットケーキミックス',80,'g'),i('卵',1,'個'),i('牛乳',60,'ml'),i('バナナ',1,'本'),i('ホイップクリーム',20,'g')],
+        steps:['ホットケーキミックス、卵、牛乳を混ぜて生地を作る（混ぜすぎない）','フライパンを弱火で熱し、生地を流して両面焼く（表面にプツプツ出たら裏返す）','バナナを輪切りにする','パンケーキにバナナとホイップクリームをトッピングする'] },
       { name:'豚汁定食', cuisine:'jp', cal:470, cost:'low',
-        ing:[i('豚バラ肉',60,'g'),i('大根',50,'g'),i('にんじん',30,'g'),i('ごぼう',30,'g'),i('こんにゃく',40,'g'),i('味噌',18,'g'),i('ごはん',200,'g')] },
+        ing:[i('豚バラ肉',60,'g'),i('大根',50,'g'),i('にんじん',30,'g'),i('ごぼう',30,'g'),i('こんにゃく',40,'g'),i('味噌',18,'g'),i('ごはん',200,'g')],
+        steps:['豚バラを一口大、大根・にんじんをいちょう切り、ごぼうをささがきにする','こんにゃくを手でちぎり下茹でする','鍋にごま油少々を熱し豚肉を炒め、野菜とこんにゃくを加えて水400mlで煮る','柔らかくなったら味噌を溶き入れ、ごはんと一緒に盛り付ける'] },
       { name:'エッグベネディクト', cuisine:'western', cal:520, cost:'high',
-        ing:[i('イングリッシュマフィン',1,'個'),i('卵',2,'個'),i('ハム',2,'枚'),i('バター',15,'g'),i('レモン',0.25,'個')] },
+        ing:[i('イングリッシュマフィン',1,'個'),i('卵',2,'個'),i('ハム',2,'枚'),i('バター',15,'g'),i('レモン',0.25,'個')],
+        steps:['マフィンを半分に切ってトーストする','沸騰した湯に酢を入れ、卵を割り入れてポーチドエッグを作る（3分）','バターを湯煎で溶かし、卵黄とレモン汁を混ぜてオランデーズソースを作る','マフィンにハム、ポーチドエッグをのせソースをかける'] },
       { name:'肉まん＋豆乳', cuisine:'cn', cal:400, cost:'low',
-        ing:[i('肉まん',2,'個'),i('豆乳',200,'ml'),i('ザーサイ',10,'g')] },
+        ing:[i('肉まん',2,'個'),i('豆乳',200,'ml'),i('ザーサイ',10,'g')],
+        steps:['肉まんを蒸し器で10分蒸す（レンジなら1個50秒）','豆乳をカップに注ぎ、電子レンジで1分30秒温める','ザーサイを小皿に盛り付ける','温かい肉まんと豆乳をザーサイと共にいただく'] },
       { name:'だし巻き卵定食', cuisine:'jp', cal:430, cost:'low',
-        ing:[i('卵',3,'個'),i('ごはん',200,'g'),i('味噌',18,'g'),i('わかめ',3,'g'),i('大根',40,'g')] },
+        ing:[i('卵',3,'個'),i('ごはん',200,'g'),i('味噌',18,'g'),i('わかめ',3,'g'),i('大根',40,'g')],
+        steps:['卵3個にだし汁大さじ2、塩少々を混ぜる','卵焼き器に油を薄く塗り、卵液を3回に分けて流し巻いていく','大根をすりおろす。鍋に水300mlを沸かし、わかめを入れて味噌を溶く','だし巻き卵に大根おろしを添え、ごはんと味噌汁と共に盛り付ける'] },
       { name:'クロックムッシュ', cuisine:'western', cal:490, cost:'mid',
-        ing:[i('食パン',2,'枚'),i('ハム',2,'枚'),i('チーズ',30,'g'),i('牛乳',30,'ml'),i('バター',10,'g')] },
+        ing:[i('食パン',2,'枚'),i('ハム',2,'枚'),i('チーズ',30,'g'),i('牛乳',30,'ml'),i('バター',10,'g')],
+        steps:['食パンにハムとチーズを挟む','フライパンにバターを溶かし、サンドイッチを弱火で両面焼く','チーズが溶けてきたら取り出す','半分に切って皿に盛り、お好みで牛乳を温めて添える'] },
       { name:'台湾風豆乳スープ（鹹豆漿）', cuisine:'cn', cal:380, cost:'low',
-        ing:[i('豆乳',250,'ml'),i('酢',10,'ml'),i('ザーサイ',10,'g'),i('干しエビ',5,'g'),i('ごま油',5,'ml'),i('長ねぎ',15,'g')] },
+        ing:[i('豆乳',250,'ml'),i('酢',10,'ml'),i('ザーサイ',10,'g'),i('干しエビ',5,'g'),i('ごま油',5,'ml'),i('長ねぎ',15,'g')],
+        steps:['器に酢、醤油少々、ごま油、刻んだザーサイ、干しエビ、ねぎを入れる','豆乳を鍋で沸騰直前まで温める','熱い豆乳を器に一気に注ぐ（酢の効果で豆乳が固まる）','かき混ぜずにスプーンですくいながらいただく'] },
     ],
     lunch: [
       { name:'カツ丼', cuisine:'jp', cal:700, cost:'mid',
-        ing:[i('豚ロース',120,'g'),i('卵',2,'個'),i('玉ねぎ',0.5,'個'),i('ごはん',250,'g'),i('パン粉',20,'g'),i('醤油',15,'ml'),i('みりん',15,'ml')] },
+        ing:[i('豚ロース',120,'g'),i('卵',2,'個'),i('玉ねぎ',0.5,'個'),i('ごはん',250,'g'),i('パン粉',20,'g'),i('醤油',15,'ml'),i('みりん',15,'ml')],
+        steps:['豚ロースの筋を切り、塩胡椒をして小麦粉→溶き卵→パン粉の順に衣をつける','170℃の油で4〜5分、きつね色になるまで揚げる','小鍋に醤油・みりん・水80mlを煮立て、薄切り玉ねぎを煮る','カツを入れ溶き卵を回しかけ半熟で火を止め、ごはんにのせる'] },
       { name:'ナポリタン', cuisine:'western', cal:650, cost:'low',
-        ing:[i('スパゲッティ',100,'g'),i('ウインナー',3,'本'),i('玉ねぎ',0.5,'個'),i('ピーマン',1,'個'),i('ケチャップ',30,'g'),i('バター',10,'g')] },
+        ing:[i('スパゲッティ',100,'g'),i('ウインナー',3,'本'),i('玉ねぎ',0.5,'個'),i('ピーマン',1,'個'),i('ケチャップ',30,'g'),i('バター',10,'g')],
+        steps:['スパゲッティを表示時間より1分長く茹でる','ウインナーを斜め切り、玉ねぎをスライス、ピーマンを細切りにする','フライパンにバターを溶かし、具材を炒める','茹でたパスタとケチャップを加え、強火で手早く炒め合わせる'] },
       { name:'回鍋肉定食', cuisine:'cn', cal:680, cost:'low',
-        ing:[i('豚バラ肉',100,'g'),i('キャベツ',100,'g'),i('ピーマン',2,'個'),i('甜麺醤',10,'g'),i('豆板醤',5,'g'),i('ごはん',200,'g')] },
+        ing:[i('豚バラ肉',100,'g'),i('キャベツ',100,'g'),i('ピーマン',2,'個'),i('甜麺醤',10,'g'),i('豆板醤',5,'g'),i('ごはん',200,'g')],
+        steps:['豚バラを一口大に切る。キャベツはざく切り、ピーマンは乱切りにする','フライパンに油少々を熱し、豚バラをカリッと焼いて一旦取り出す','キャベツとピーマンを強火で手早く炒める','豚肉を戻し、甜麺醤・豆板醤・醤油少々で味付けし、ごはんと盛り付ける'] },
       { name:'ハンバーグランチ', cuisine:'western', cal:720, cost:'mid',
-        ing:[i('合いびき肉',150,'g'),i('玉ねぎ',0.5,'個'),i('パン粉',15,'g'),i('卵',0.5,'個'),i('デミグラスソース',50,'g'),i('じゃがいも',1,'個')] },
+        ing:[i('合いびき肉',150,'g'),i('玉ねぎ',0.5,'個'),i('パン粉',15,'g'),i('卵',0.5,'個'),i('デミグラスソース',50,'g'),i('じゃがいも',1,'個')],
+        steps:['玉ねぎをみじん切りにしてレンジで2分加熱し冷ます','合いびき肉、玉ねぎ、パン粉、卵、塩胡椒をよく練り混ぜ、小判型に成形する','フライパンで中火で焼き（片面3分）、裏返して蓋をし弱火で5分蒸し焼き','デミグラスソースを温めてかけ、茹でたじゃがいもを添える'] },
       { name:'天ぷらうどん', cuisine:'jp', cal:600, cost:'mid',
-        ing:[i('うどん',1,'玉'),i('エビ',3,'尾'),i('さつまいも',50,'g'),i('大葉',2,'枚'),i('天ぷら粉',30,'g'),i('めんつゆ',50,'ml')] },
+        ing:[i('うどん',1,'玉'),i('エビ',3,'尾'),i('さつまいも',50,'g'),i('大葉',2,'枚'),i('天ぷら粉',30,'g'),i('めんつゆ',50,'ml')],
+        steps:['エビは殻をむき背わたを取る。さつまいもを薄切りにする','天ぷら粉を冷水で溶き、エビ・さつまいも・大葉をくぐらせて180℃で揚げる','うどんを茹でて器に入れ、温かいめんつゆをかける','天ぷらをのせて完成'] },
       { name:'担々麺', cuisine:'cn', cal:680, cost:'mid',
-        ing:[i('中華麺',1,'玉'),i('豚ひき肉',80,'g'),i('チンゲン菜',60,'g'),i('練りごま',15,'g'),i('豆板醤',5,'g'),i('ラー油',5,'ml')] },
+        ing:[i('中華麺',1,'玉'),i('豚ひき肉',80,'g'),i('チンゲン菜',60,'g'),i('練りごま',15,'g'),i('豆板醤',5,'g'),i('ラー油',5,'ml')],
+        steps:['フライパンで豚ひき肉を炒め、醤油と甜麺醤少々で味付けして肉味噌を作る','練りごま、鶏ガラスープの素、醤油、ラー油を器に合わせ、熱湯300mlを注ぐ','中華麺を茹で、スープに入れる','肉味噌と茹でたチンゲン菜をトッピングする'] },
       { name:'タコライス', cuisine:'western', cal:650, cost:'mid',
-        ing:[i('合いびき肉',120,'g'),i('レタス',40,'g'),i('トマト',0.5,'個'),i('チーズ',30,'g'),i('ごはん',200,'g'),i('サルサソース',30,'g')] },
+        ing:[i('合いびき肉',120,'g'),i('レタス',40,'g'),i('トマト',0.5,'個'),i('チーズ',30,'g'),i('ごはん',200,'g'),i('サルサソース',30,'g')],
+        steps:['フライパンで合いびき肉を炒め、ケチャップ・ウスターソース・カレー粉少々で味付け','レタスを千切り、トマトを角切りにする','器にごはんを盛り、レタス、タコミート、トマト、チーズをのせる','サルサソースをかけて完成'] },
       { name:'親子丼', cuisine:'jp', cal:620, cost:'low',
-        ing:[i('鶏もも肉',120,'g'),i('卵',2,'個'),i('玉ねぎ',0.5,'個'),i('ごはん',250,'g'),i('醤油',15,'ml'),i('みりん',15,'ml')] },
+        ing:[i('鶏もも肉',120,'g'),i('卵',2,'個'),i('玉ねぎ',0.5,'個'),i('ごはん',250,'g'),i('醤油',15,'ml'),i('みりん',15,'ml')],
+        steps:['鶏もも肉を一口大に切り、玉ねぎを薄切りにする','小鍋に水80ml、醤油、みりんを合わせ、玉ねぎを煮る','鶏肉を加え火が通ったら、溶き卵を2回に分けて回しかける','半熟のうちに火を止め、ごはんの上にすべらせてのせる'] },
       { name:'カルボナーラ', cuisine:'western', cal:700, cost:'high',
-        ing:[i('スパゲッティ',100,'g'),i('ベーコン',40,'g'),i('卵',1,'個'),i('パルメザンチーズ',20,'g'),i('生クリーム',50,'ml')] },
+        ing:[i('スパゲッティ',100,'g'),i('ベーコン',40,'g'),i('卵',1,'個'),i('パルメザンチーズ',20,'g'),i('生クリーム',50,'ml')],
+        steps:['卵、パルメザンチーズ、生クリーム、黒胡椒を混ぜてソースを作る','スパゲッティを表示時間通り茹でる（茹で汁を少し取っておく）','フライパンでベーコンをカリカリに炒める','火を止めたフライパンにパスタを入れ、ソースを絡める（余熱で火を通す）'] },
       { name:'麻婆丼', cuisine:'cn', cal:660, cost:'low',
-        ing:[i('豆腐',200,'g'),i('豚ひき肉',80,'g'),i('長ねぎ',0.5,'本'),i('豆板醤',5,'g'),i('甜麺醤',10,'g'),i('ごはん',200,'g')] },
+        ing:[i('豆腐',200,'g'),i('豚ひき肉',80,'g'),i('長ねぎ',0.5,'本'),i('豆板醤',5,'g'),i('甜麺醤',10,'g'),i('ごはん',200,'g')],
+        steps:['豆腐を2cm角に切り、熱湯で2分下茹でする','フライパンに油を熱し、豚ひき肉を炒める','豆板醤と甜麺醤を加えて香りが出たら、水100mlと豆腐を加えて5分煮る','水溶き片栗粉でとろみをつけ、ごはんの上にかけてねぎを散らす'] },
     ],
     dinner: [
       { name:'すき焼き', cuisine:'jp', cal:650, cost:'high',
-        ing:[i('牛肩ロース',150,'g'),i('白菜',100,'g'),i('長ねぎ',0.5,'本'),i('しらたき',80,'g'),i('焼き豆腐',100,'g'),i('春菊',40,'g'),i('卵',1,'個'),i('砂糖',10,'g'),i('醤油',20,'ml'),i('みりん',20,'ml')] },
+        ing:[i('牛肩ロース',150,'g'),i('白菜',100,'g'),i('長ねぎ',0.5,'本'),i('しらたき',80,'g'),i('焼き豆腐',100,'g'),i('春菊',40,'g'),i('卵',1,'個'),i('砂糖',10,'g'),i('醤油',20,'ml'),i('みりん',20,'ml')],
+        steps:['しらたきを下茹でし、焼き豆腐・白菜・長ねぎを食べやすく切る','すき焼き鍋に牛脂を溶かし、牛肉を広げて焼き、砂糖と醤油をかける','残りの具材を加え、醤油・みりん・砂糖・水の割り下を注ぐ','煮えた具材から溶き卵につけていただく'] },
       { name:'チキンのクリームシチュー', cuisine:'western', cal:580, cost:'mid',
-        ing:[i('鶏もも肉',120,'g'),i('じゃがいも',1,'個'),i('にんじん',0.5,'本'),i('玉ねぎ',0.5,'個'),i('牛乳',150,'ml'),i('バター',12,'g'),i('小麦粉',10,'g')] },
+        ing:[i('鶏もも肉',120,'g'),i('じゃがいも',1,'個'),i('にんじん',0.5,'本'),i('玉ねぎ',0.5,'個'),i('牛乳',150,'ml'),i('バター',12,'g'),i('小麦粉',10,'g')],
+        steps:['鶏もも肉、じゃがいも、にんじん、玉ねぎを一口大に切る','鍋にバターを溶かし鶏肉と野菜を炒め、小麦粉を振り入れて粉っぽさがなくなるまで炒める','水300mlを加え、蓋をして弱火で15分煮込む','牛乳を加え、塩胡椒で味を調え5分温める'] },
       { name:'酢豚', cuisine:'cn', cal:620, cost:'mid',
-        ing:[i('豚肩ロース',120,'g'),i('玉ねぎ',0.5,'個'),i('ピーマン',2,'個'),i('にんじん',0.3,'本'),i('パイナップル',30,'g'),i('酢',20,'ml'),i('ケチャップ',20,'g')] },
+        ing:[i('豚肩ロース',120,'g'),i('玉ねぎ',0.5,'個'),i('ピーマン',2,'個'),i('にんじん',0.3,'本'),i('パイナップル',30,'g'),i('酢',20,'ml'),i('ケチャップ',20,'g')],
+        steps:['豚肉を一口大に切り、醤油と酒で下味をつけ、片栗粉をまぶして揚げる','玉ねぎ・ピーマン・にんじんを乱切りにし、油通しまたは軽く炒める','ケチャップ・酢・砂糖・醤油・水を合わせて甘酢あんを作る','フライパンで甘酢あんを煮立て、肉と野菜、パイナップルを絡める'] },
       { name:'ビーフシチュー', cuisine:'western', cal:680, cost:'high',
-        ing:[i('牛すね肉',150,'g'),i('じゃがいも',1,'個'),i('にんじん',0.5,'本'),i('玉ねぎ',0.5,'個'),i('トマト缶',0.3,'缶'),i('赤ワイン',30,'ml'),i('デミグラスソース',50,'g')] },
+        ing:[i('牛すね肉',150,'g'),i('じゃがいも',1,'個'),i('にんじん',0.5,'本'),i('玉ねぎ',0.5,'個'),i('トマト缶',0.3,'缶'),i('赤ワイン',30,'ml'),i('デミグラスソース',50,'g')],
+        steps:['牛すね肉を3cm角に切り、塩胡椒をして表面をフライパンで焼く','鍋に移し、赤ワインと水300mlを加えて沸騰させ、アクを取る','大きめに切った玉ねぎ・にんじん・じゃがいも、トマト缶を加え弱火で40分煮込む','デミグラスソースを加え、さらに10分煮て塩胡椒で味を調える'] },
       { name:'エビチリ＋中華スープ', cuisine:'cn', cal:550, cost:'mid',
-        ing:[i('エビ',120,'g'),i('長ねぎ',0.5,'本'),i('にんにく',1,'片'),i('生姜',5,'g'),i('豆板醤',5,'g'),i('ケチャップ',15,'g'),i('卵',1,'個'),i('わかめ',3,'g')] },
+        ing:[i('エビ',120,'g'),i('長ねぎ',0.5,'本'),i('にんにく',1,'片'),i('生姜',5,'g'),i('豆板醤',5,'g'),i('ケチャップ',15,'g'),i('卵',1,'個'),i('わかめ',3,'g')],
+        steps:['エビは殻をむき背わたを取り、片栗粉と塩でもみ洗いする','フライパンに油を熱し、みじん切りのにんにく・生姜・豆板醤を炒める','エビを加えて炒め、ケチャップ・砂糖・水50mlのソースで煮絡める','スープ：鍋に水300ml、鶏ガラスープの素、溶き卵、わかめで中華スープを作る'] },
       { name:'さばの味噌煮＋筑前煮', cuisine:'jp', cal:520, cost:'low',
-        ing:[i('さば',1,'切れ'),i('味噌',20,'g'),i('生姜',10,'g'),i('鶏もも肉',80,'g'),i('れんこん',50,'g'),i('にんじん',0.3,'本'),i('ごぼう',30,'g'),i('こんにゃく',40,'g'),i('醤油',15,'ml')] },
+        ing:[i('さば',1,'切れ'),i('味噌',20,'g'),i('生姜',10,'g'),i('鶏もも肉',80,'g'),i('れんこん',50,'g'),i('にんじん',0.3,'本'),i('ごぼう',30,'g'),i('こんにゃく',40,'g'),i('醤油',15,'ml')],
+        steps:['さばに十字の切れ目を入れ、熱湯で霜降りにする','鍋に水100ml、酒・みりん・砂糖各大さじ1を煮立て、さばと生姜スライスを入れ、味噌を溶いて落し蓋で15分煮る','筑前煮：鶏肉・れんこん・にんじん・ごぼう・こんにゃくを一口大に切り炒める','だし汁200ml・醤油・みりん・砂糖で15分煮含める'] },
       { name:'ローストポーク＋温野菜', cuisine:'western', cal:600, cost:'mid',
-        ing:[i('豚肩ロース',150,'g'),i('にんにく',1,'片'),i('ローズマリー',1,'枝'),i('じゃがいも',1,'個'),i('ブロッコリー',60,'g'),i('にんじん',0.5,'本')] },
+        ing:[i('豚肩ロース',150,'g'),i('にんにく',1,'片'),i('ローズマリー',1,'枝'),i('じゃがいも',1,'個'),i('ブロッコリー',60,'g'),i('にんじん',0.5,'本')],
+        steps:['豚肉に塩胡椒をすり込み、にんにくスライスとローズマリーをのせて30分置く','フライパンで全面に焼き色をつけ、アルミホイルで包んで200℃のオーブンで25分焼く','じゃがいも・にんじんを一口大に切り茹でる。ブロッコリーも塩茹でする','肉を10分休ませてからスライスし、温野菜を添える'] },
       { name:'生姜焼き定食', cuisine:'jp', cal:600, cost:'low',
-        ing:[i('豚ロース',120,'g'),i('生姜',10,'g'),i('玉ねぎ',0.5,'個'),i('キャベツ',60,'g'),i('ごはん',200,'g'),i('醤油',15,'ml'),i('みりん',15,'ml')] },
+        ing:[i('豚ロース',120,'g'),i('生姜',10,'g'),i('玉ねぎ',0.5,'個'),i('キャベツ',60,'g'),i('ごはん',200,'g'),i('醤油',15,'ml'),i('みりん',15,'ml')],
+        steps:['豚ロースの筋を切り、すりおろし生姜・醤油・みりんで15分漬ける','キャベツを千切りにして皿に盛る','フライパンに油を熱し、薄切り玉ねぎと豚肉を漬けダレごと中火で焼く','両面に焼き色がついたら皿に盛り、ごはんを添える'] },
       { name:'チーズリゾット', cuisine:'western', cal:620, cost:'high',
-        ing:[i('ごはん',200,'g'),i('パルメザンチーズ',30,'g'),i('玉ねぎ',0.5,'個'),i('バター',15,'g'),i('白ワイン',30,'ml'),i('鶏ガラスープの素',5,'g')] },
+        ing:[i('ごはん',200,'g'),i('パルメザンチーズ',30,'g'),i('玉ねぎ',0.5,'個'),i('バター',15,'g'),i('白ワイン',30,'ml'),i('鶏ガラスープの素',5,'g')],
+        steps:['玉ねぎをみじん切りにする','鍋にバターを溶かし、玉ねぎを透き通るまで炒める','白ワインを加えてアルコールを飛ばし、ごはんと水200ml、鶏ガラスープの素を加える','5分煮たらパルメザンチーズを加えて混ぜ、塩胡椒で味を調える'] },
       { name:'青椒肉絲', cuisine:'cn', cal:560, cost:'mid',
-        ing:[i('牛もも肉',120,'g'),i('ピーマン',3,'個'),i('たけのこ',50,'g'),i('醤油',12,'ml'),i('オイスターソース',10,'ml'),i('ごま油',8,'ml')] },
+        ing:[i('牛もも肉',120,'g'),i('ピーマン',3,'個'),i('たけのこ',50,'g'),i('醤油',12,'ml'),i('オイスターソース',10,'ml'),i('ごま油',8,'ml')],
+        steps:['牛肉を細切りにし、醤油・酒・片栗粉で下味をつける','ピーマンとたけのこを細切りにする','フライパンにごま油を熱し、牛肉を強火で手早く炒めて取り出す','ピーマン・たけのこを炒め、肉を戻してオイスターソース・醤油で味付けする'] },
     ]
   }
 };
@@ -441,7 +530,6 @@ function renderSummary() {
   const avgCal=Math.round(totalCal/7), cc={jp:0,western:0,cn:0};
   currentPlan.forEach(d=>d.meals.forEach(m=>cc[m.cuisine]++));
   const allIng=new Set(); currentPlan.forEach(d=>d.meals.forEach(m=>m.ing.forEach(x=>allIng.add(x.n))));
-  const bl={saving:'節約',normal:'通常',rich:'リッチ'};
   bar.innerHTML=`
     <div class="stat-card animate-in" style="animation-delay:0s"><div class="stat-num">${avgCal}</div><div class="stat-label">1日平均 kcal</div></div>
     <div class="stat-card animate-in" style="animation-delay:.05s"><div class="stat-num">${cc.jp}</div><div class="stat-label">和食</div></div>
@@ -459,12 +547,58 @@ function renderPlan() {
   currentPlan.forEach((d,idx)=>{
     const tc=d.meals.reduce((s,m)=>s+m.cal,0);
     const cl={jp:'和',western:'洋',cn:'中'};
-    html+=`<div class="day-card animate-in" style="animation-delay:${idx*.04}s"><div class="day-header open" onclick="toggleDay(this)"><span class="day-dot" style="background:${d.color}"></span><span class="day-name">${d.day}</span><span class="day-cal-badge">${tc} kcal/人</span><span class="day-arrow">&#9660;</span></div><div class="day-body">${d.meals.map(m=>`<div class="meal-row"><span class="meal-badge ${m.type}">${m.label}</span><span class="cuisine-pill ${m.cuisine}">${cl[m.cuisine]}</span><span class="meal-name">${m.name}</span><span class="meal-cal">${m.cal} kcal</span></div>`).join('')}<div class="day-total">合計 ${tc} kcal / 人</div></div></div>`;
+    html+=`<div class="day-card animate-in" style="animation-delay:${idx*.04}s"><div class="day-header open" onclick="toggleDay(this)"><span class="day-dot" style="background:${d.color}"></span><span class="day-name">${d.day}</span><span class="day-cal-badge">${tc} kcal/人</span><span class="day-arrow">&#9660;</span></div><div class="day-body">${d.meals.map(m=>`<div class="meal-row" onclick="event.stopPropagation();openRecipe(${JSON.stringify(m).replace(/"/g,'&quot;')})"><span class="meal-badge ${m.type}">${m.label}</span><span class="cuisine-pill ${m.cuisine}">${cl[m.cuisine]}</span><span class="meal-name">${m.name}</span><span class="meal-cal">${m.cal} kcal</span><span class="meal-recipe-icon">&#9654;</span></div>`).join('')}<div class="day-total">合計 ${tc} kcal / 人</div></div></div>`;
   });
   c.innerHTML=html;
 }
 
 function toggleDay(el){el.classList.toggle('open');el.nextElementSibling.classList.toggle('collapsed');}
+
+// ── Recipe Modal ──
+function openRecipe(meal) {
+  const cl={jp:'和食',western:'洋食',cn:'中華'};
+  const modal = document.getElementById('recipeModal');
+  const content = document.getElementById('recipeModalContent');
+  let ingHtml = meal.ing.map(x => {
+    const q = Math.round(x.q * peopleCount * 10) / 10;
+    const v = q % 1 === 0 ? q : q.toFixed(1);
+    return `<li class="modal-ing-item"><span class="ing-name">${x.n}</span><span class="ing-qty">${v} ${x.u}</span></li>`;
+  }).join('');
+
+  let stepsHtml = (meal.steps || []).map(s => `<li>${s}</li>`).join('');
+
+  content.innerHTML = `
+    <div class="modal-head">
+      <div class="modal-head-text">
+        <div class="modal-title">${meal.name}</div>
+        <div class="modal-meta">
+          <span class="cuisine-pill ${meal.cuisine}">${cl[meal.cuisine]}</span>
+          <span class="meal-badge ${meal.type}">${meal.label}</span>
+          <span style="font-size:.78rem;color:var(--text-muted)">${meal.cal} kcal/人</span>
+        </div>
+      </div>
+      <button class="modal-close" onclick="closeRecipe()">&times;</button>
+    </div>
+    <div class="modal-section">
+      <div class="modal-section-title">&#129367; 材料（${peopleCount}人分）</div>
+      <ul class="modal-ing-list">${ingHtml}</ul>
+    </div>
+    <div class="modal-section">
+      <div class="modal-section-title">&#128296; 作り方</div>
+      <ol class="modal-steps">${stepsHtml}</ol>
+    </div>
+    <div class="modal-footer">
+      <span class="tip">&#128161; 分量は${peopleCount}人前です。人数設定で調整できます</span>
+    </div>`;
+  modal.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeRecipe() {
+  document.getElementById('recipeModal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+document.addEventListener('keydown', e => { if(e.key==='Escape') closeRecipe(); });
 
 // ── Aggregate quantities ──
 function aggregateIngredients() {
@@ -478,7 +612,6 @@ function aggregateIngredients() {
 }
 
 function fmtQty(q, u) {
-  // Friendly formatting
   const v = q % 1 === 0 ? q : q.toFixed(1);
   return v + ' ' + u;
 }
@@ -539,7 +672,6 @@ function renderIngredients() {
   container.innerHTML = html;
 }
 
-// Buying guide memo
 function getMemo(name, qty, unit) {
   if (unit === 'g') {
     if (['鶏むね肉','鶏もも肉','豚もも肉','豚バラ肉','豚ロース','豚肩ロース','牛もも肉','牛肩ロース','牛すね肉','合いびき肉','ささみ','鶏ひき肉','豚ひき肉'].includes(name)) {
